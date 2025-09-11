@@ -36,35 +36,70 @@ const Header = () => {
     navigate("/");
   };
 
+  const handleNavigation = (section: string) => {
+    // If we're not on the home page, navigate to home first
+    if (window.location.pathname !== '/') {
+      navigate('/', { replace: true });
+      // Wait a moment for navigation, then scroll
+      setTimeout(() => {
+        const element = document.getElementById(section);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      // We're already on home page, just scroll
+      const element = document.getElementById(section);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-2">
+        <button 
+          onClick={() => navigate('/')} 
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
           <GraduationCap className="h-8 w-8 text-primary" />
           <span className="text-xl font-bold bg-gradient-hero bg-clip-text text-transparent">
             EduNaija
           </span>
-        </div>
+        </button>
         
         <nav className="hidden md:flex items-center gap-6">
-          <a href="#home" className="text-sm font-medium hover:text-primary transition-colors">
+          <button 
+            onClick={() => handleNavigation('home')} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
             Home
-          </a>
-          <a href="#subjects" className="text-sm font-medium hover:text-primary transition-colors">
+          </button>
+          <button 
+            onClick={() => handleNavigation('subjects')} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
             Subjects
-          </a>
-          <a href="#homework" className="text-sm font-medium hover:text-primary transition-colors">
+          </button>
+          <button 
+            onClick={() => handleNavigation('homework')} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
             Homework Help
-          </a>
+          </button>
           <button 
             onClick={() => navigate("/quizzes")} 
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Quizzes
           </button>
-          <a href="#resources" className="text-sm font-medium hover:text-primary transition-colors">
+          <button 
+            onClick={() => handleNavigation('resources')} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
             Resources
-          </a>
+          </button>
         </nav>
 
         <div className="flex items-center gap-2">
