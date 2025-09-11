@@ -42,7 +42,7 @@ const ContentUploadForm = () => {
   // Form data
   const [contentTitle, setContentTitle] = useState("");
   const [contentText, setContentText] = useState("");
-  const [contentType, setContentType] = useState("lesson");
+  const [contentType, setContentType] = useState("note");
 
   useEffect(() => {
     fetchSubjects();
@@ -226,11 +226,14 @@ const ContentUploadForm = () => {
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="lesson">Lesson</SelectItem>
-                <SelectItem value="video">Video</SelectItem>
-                <SelectItem value="assignment">Assignment</SelectItem>
-              </SelectContent>
+                <SelectContent>
+                  <SelectItem value="note">Note/Lesson</SelectItem>
+                  <SelectItem value="homework_guide">Homework Guide</SelectItem>
+                  <SelectItem value="experiment">Experiment</SelectItem>
+                  <SelectItem value="video">Video</SelectItem>
+                  <SelectItem value="worksheet">Worksheet</SelectItem>
+                  <SelectItem value="project">Project</SelectItem>
+                </SelectContent>
             </Select>
           </div>
 
