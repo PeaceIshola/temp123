@@ -548,39 +548,7 @@ export type Database = {
       }
     }
     Views: {
-      student_info_for_teachers: {
-        Row: {
-          anonymized_email: string | null
-          created_at: string | null
-          full_name: string | null
-          grade_level: number | null
-          id: string | null
-          role: string | null
-          school_name: string | null
-          user_id: string | null
-        }
-        Insert: {
-          anonymized_email?: never
-          created_at?: string | null
-          full_name?: string | null
-          grade_level?: number | null
-          id?: string | null
-          role?: string | null
-          school_name?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          anonymized_email?: never
-          created_at?: string | null
-          full_name?: string | null
-          grade_level?: number | null
-          id?: string | null
-          role?: string | null
-          school_name?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_subscription_status: {
@@ -614,6 +582,15 @@ export type Database = {
           grade_level: number
           id: string
           role: string
+        }[]
+      }
+      get_student_list_for_teacher: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          grade_level: number
+          role_verified: string
+          school_name: string
+          student_name: string
         }[]
       }
       get_students_for_teacher: {
