@@ -397,7 +397,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_teacher_or_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      submit_quiz_attempt: {
+        Args: { p_answers: Json; p_topic_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
