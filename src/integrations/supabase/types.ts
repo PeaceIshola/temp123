@@ -61,6 +61,39 @@ export type Database = {
           },
         ]
       }
+      frequently_asked_questions: {
+        Row: {
+          ask_count: number
+          created_at: string
+          difficulty_level: string
+          id: string
+          last_asked_at: string
+          question_text: string
+          subject_code: string
+          updated_at: string
+        }
+        Insert: {
+          ask_count?: number
+          created_at?: string
+          difficulty_level?: string
+          id?: string
+          last_asked_at?: string
+          question_text: string
+          subject_code: string
+          updated_at?: string
+        }
+        Update: {
+          ask_count?: number
+          created_at?: string
+          difficulty_level?: string
+          id?: string
+          last_asked_at?: string
+          question_text?: string
+          subject_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       homework_submissions: {
         Row: {
           attachments: Json | null
