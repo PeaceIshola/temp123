@@ -444,6 +444,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_platform_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_quiz_questions: {
         Args: { p_topic_id: string }
         Returns: {
