@@ -394,9 +394,61 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_questions: {
+        Row: {
+          created_at: string | null
+          difficulty_level: number | null
+          id: string | null
+          options: Json | null
+          points: number | null
+          question_text: string | null
+          question_type: string | null
+          topic_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          difficulty_level?: number | null
+          id?: string | null
+          options?: Json | null
+          points?: number | null
+          question_text?: string | null
+          question_type?: string | null
+          topic_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          difficulty_level?: number | null
+          id?: string | null
+          options?: Json | null
+          points?: number | null
+          question_text?: string | null
+          question_type?: string | null
+          topic_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      get_quiz_questions: {
+        Args: { p_topic_id: string }
+        Returns: {
+          difficulty_level: number
+          id: string
+          options: Json
+          points: number
+          question_text: string
+          question_type: string
+          topic_id: string
+        }[]
+      }
       is_teacher_or_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
