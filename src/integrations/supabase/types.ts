@@ -235,6 +235,53 @@ export type Database = {
           },
         ]
       }
+      solutions: {
+        Row: {
+          additional_resources: Json | null
+          content_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean | null
+          solution_content: string
+          solution_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          additional_resources?: Json | null
+          content_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          solution_content: string
+          solution_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          additional_resources?: Json | null
+          content_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean | null
+          solution_content?: string
+          solution_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solutions_content_id_fkey"
+            columns: ["content_id"]
+            isOneToOne: false
+            referencedRelation: "content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sub_subjects: {
         Row: {
           created_at: string
