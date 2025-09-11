@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Microscope, 
   Leaf, 
@@ -14,6 +17,37 @@ import {
 } from "lucide-react";
 
 const SubjectsSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSubjectClick = (subjectTitle: string) => {
+    if (user) {
+      // TODO: Navigate to subject page when implemented
+      toast({
+        title: "Coming Soon!",
+        description: `${subjectTitle} lessons will be available soon.`,
+      });
+    } else {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to access subject content.",
+      });
+      navigate("/auth");
+    }
+  };
+
+  const handleViewAllSubjects = () => {
+    if (user) {
+      toast({
+        title: "Coming Soon!",
+        description: "Full subject catalog will be available soon.",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
+
   const subjects = [
     {
       id: "bst",
@@ -103,7 +137,11 @@ const SubjectsSection = () => {
                     </div>
                   ))}
                 </div>
-                <Button variant="subject" className="w-full group">
+                <Button 
+                  variant="subject" 
+                  className="w-full group"
+                  onClick={() => handleSubjectClick(subject.title)}
+                >
                   Explore {subject.title.split(" ")[0]}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
@@ -113,7 +151,7 @@ const SubjectsSection = () => {
         </div>
 
         <div className="text-center">
-          <Button variant="hero" size="lg">
+          <Button variant="hero" size="lg" onClick={handleViewAllSubjects}>
             View All Subjects
           </Button>
         </div>

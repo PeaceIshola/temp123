@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 import { 
   HelpCircle, 
   CheckCircle, 
@@ -10,6 +13,47 @@ import {
 } from "lucide-react";
 
 const HomeworkSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleAskQuestion = () => {
+    if (user) {
+      toast({
+        title: "Coming Soon!",
+        description: "Question submission feature will be available soon.",
+      });
+    } else {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to ask questions.",
+      });
+      navigate("/auth");
+    }
+  };
+
+  const handleBrowseSolutions = () => {
+    if (user) {
+      toast({
+        title: "Coming Soon!",
+        description: "Solution bank will be available soon.",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
+
+  const handleViewAllTools = () => {
+    if (user) {
+      toast({
+        title: "Coming Soon!",
+        description: "Additional homework tools will be available soon.",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
+
   const features = [
     {
       icon: HelpCircle,
@@ -92,10 +136,10 @@ const HomeworkSection = () => {
             </div>
             
             <div className="space-y-4">
-              <Button variant="hero" size="lg" className="w-full">
+              <Button variant="hero" size="lg" className="w-full" onClick={handleAskQuestion}>
                 Ask a Question
               </Button>
-              <Button variant="outline" size="lg" className="w-full">
+              <Button variant="outline" size="lg" className="w-full" onClick={handleBrowseSolutions}>
                 Browse Solution Bank
               </Button>
             </div>
@@ -130,7 +174,7 @@ const HomeworkSection = () => {
         </div>
 
         <div className="text-center">
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" onClick={handleViewAllTools}>
             View All Homework Help Tools
           </Button>
         </div>

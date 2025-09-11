@@ -1,8 +1,26 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Users, Trophy } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import heroImage from "@/assets/hero-education.jpg";
 
 const HeroSection = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStartLearning = () => {
+    if (user) {
+      // Navigate to dashboard or subjects when implemented
+      navigate("/#subjects");
+    } else {
+      navigate("/auth");
+    }
+  };
+
+  const handleExploreSubjects = () => {
+    document.getElementById("subjects")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <section id="home" className="relative py-20 lg:py-32 bg-gradient-bg overflow-hidden">
       <div className="container relative z-10">
@@ -20,11 +38,11 @@ const HeroSection = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="lg" className="group">
-                Start Learning Now
+              <Button variant="hero" size="lg" className="group" onClick={handleStartLearning}>
+                {user ? "Continue Learning" : "Start Learning Now"}
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button variant="outline" size="lg">
+              <Button variant="outline" size="lg" onClick={handleExploreSubjects}>
                 Explore Subjects
               </Button>
             </div>
