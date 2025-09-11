@@ -6,6 +6,7 @@ import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ContentUploadForm from "@/components/teacher/ContentUploadForm";
 import QuizCreateForm from "@/components/teacher/QuizCreateForm";
+import QuizManagement from "@/components/teacher/QuizManagement";
 import SolutionsForm from "@/components/teacher/SolutionsForm";
 
 
@@ -53,9 +54,10 @@ const TeacherDashboard = () => {
         </div>
 
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="content">Learning Content</TabsTrigger>
-            <TabsTrigger value="quiz">Quizzes & Exercises</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="content">Upload Content</TabsTrigger>
+            <TabsTrigger value="quiz">Create Quiz</TabsTrigger>
+            <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>
             <TabsTrigger value="solutions">Solutions</TabsTrigger>
           </TabsList>
           
@@ -65,6 +67,10 @@ const TeacherDashboard = () => {
           
           <TabsContent value="quiz" className="space-y-4">
             <QuizCreateForm />
+          </TabsContent>
+          
+          <TabsContent value="manage" className="space-y-4">
+            <QuizManagement />
           </TabsContent>
           
           <TabsContent value="solutions" className="space-y-4">

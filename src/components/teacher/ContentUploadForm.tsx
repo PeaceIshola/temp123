@@ -8,7 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText } from "lucide-react";
+import { Upload, FileText, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Subject {
   id: string;
@@ -28,12 +30,21 @@ interface Topic {
   sub_subject_id: string;
 }
 
+interface Content {
+  id: string;
+  title: string;
+  content_type: string;
+  is_published: boolean;
+  created_at: string;
+}
+
 const ContentUploadForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
   const [topics, setTopics] = useState<Topic[]>([]);
+  const [existingContent, setExistingContent] = useState<Content[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedSubSubject, setSelectedSubSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
@@ -46,6 +57,7 @@ const ContentUploadForm = () => {
 
   useEffect(() => {
     fetchSubjects();
+    fetchExistingContent();
   }, []);
 
   useEffect(() => {
@@ -93,6 +105,16 @@ const ContentUploadForm = () => {
     setTopics(data || []);
   };
 
+  const fetchExistingContent = async () => {
+    const { data } = await supabase
+      .from('content')
+      .select('id, title, content_type, is_published, created_at')
+      .eq('created_by', user?.id)
+      .order('created_at', { ascending: false });
+
+    setExistingContent(data || []);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -137,6 +159,7 @@ const ContentUploadForm = () => {
       setSelectedSubject("");
       setSelectedSubSubject("");
       setSelectedTopic("");
+      fetchExistingContent();
     } catch (error: any) {
       console.error('Upload failed:', error);
       toast({
@@ -149,7 +172,32 @@ const ContentUploadForm = () => {
     }
   };
 
+  const deleteContent = async (contentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('content')
+        .delete()
+        .eq('id', contentId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Content deleted successfully",
+      });
+
+      fetchExistingContent();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete content",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
+    <div className="space-y-6">
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -267,6 +315,62 @@ const ContentUploadForm = () => {
         </form>
       </CardContent>
     </Card>
+
+    {/* Existing Content */}
+    {existingContent.length > 0 && (
+      <Card>
+        <CardHeader>
+          <CardTitle>Your Content ({existingContent.length})</CardTitle>
+          <CardDescription>
+            Manage your uploaded content modules
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {existingContent.map((content) => (
+              <div key={content.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div className="flex-1">
+                  <h4 className="font-medium">{content.title}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Badge variant="outline">
+                      {content.content_type.replace('_', ' ')}
+                    </Badge>
+                    <Badge variant={content.is_published ? "default" : "secondary"}>
+                      {content.is_published ? "Published" : "Draft"}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {new Date(content.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Content</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete "{content.title}"? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => deleteContent(content.id)}>
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    )}
+  </div>
   );
 };
 

@@ -8,8 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { BookOpen, Plus, X } from "lucide-react";
+import { BookOpen, Plus, X, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface Content {
   id: string;
@@ -161,6 +162,30 @@ const SolutionsForm = () => {
     }
   };
 
+  const deleteSolution = async (solutionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('solutions')
+        .delete()
+        .eq('id', solutionId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Solution deleted successfully",
+      });
+
+      fetchSolutions();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete solution",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -295,13 +320,36 @@ const SolutionsForm = () => {
                       </Badge>
                     </div>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => togglePublished(solution.id, solution.is_published)}
-                  >
-                    {solution.is_published ? "Unpublish" : "Publish"}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePublished(solution.id, solution.is_published)}
+                    >
+                      {solution.is_published ? "Unpublish" : "Publish"}
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Solution</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{solution.title}"? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => deleteSolution(solution.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               ))}
             </div>
