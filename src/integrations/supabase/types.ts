@@ -493,6 +493,10 @@ export type Database = {
           topic_id: string
         }[]
       }
+      increment_question_count: {
+        Args: { question_id: string }
+        Returns: undefined
+      }
       is_teacher_or_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

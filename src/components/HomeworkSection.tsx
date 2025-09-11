@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { usePopularQuestions } from "@/hooks/usePopularQuestions";
 import { useToast } from "@/hooks/use-toast";
 import { 
   HelpCircle, 
@@ -16,6 +17,7 @@ const HomeworkSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { questions: popularQuestions, loading: questionsLoading } = usePopularQuestions();
 
   const handleAskQuestion = () => {
     if (user) {
@@ -77,26 +79,14 @@ const HomeworkSection = () => {
     }
   ];
 
-  const exampleQuestions = [
-    {
-      subject: "BST",
-      question: "Explain the functions of the digestive system",
-      difficulty: "Medium",
-      color: "primary"
-    },
-    {
-      subject: "PVS", 
-      question: "List 5 farm tools and their uses",
-      difficulty: "Easy",
-      color: "secondary"
-    },
-    {
-      subject: "NV",
-      question: "Discuss the importance of democracy in Nigeria",
-      difficulty: "Hard", 
-      color: "accent"
+  const getSubjectColor = (subjectCode: string) => {
+    switch (subjectCode) {
+      case "BST": return "primary";
+      case "PVS": return "secondary";
+      case "NV": return "accent";
+      default: return "primary";
     }
-  ];
+  };
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -152,22 +142,38 @@ const HomeworkSection = () => {
                 Popular Questions This Week
               </h3>
               <div className="space-y-4">
-                {exampleQuestions.map((q, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                    <div className={`px-2 py-1 rounded text-xs font-medium ${
-                      q.color === 'primary' ? 'bg-primary/10 text-primary' :
-                      q.color === 'secondary' ? 'bg-secondary/10 text-secondary' :
-                      'bg-accent/10 text-accent'
-                    }`}>
-                      {q.subject}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{q.question}</p>
-                      <p className={`text-xs ${getDifficultyColor(q.difficulty)}`}>{q.difficulty}</p>
-                    </div>
-                    <CheckCircle className="h-4 w-4 text-accent flex-shrink-0" />
+                {questionsLoading ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Loading popular questions...</p>
                   </div>
-                ))}
+                ) : popularQuestions.length > 0 ? (
+                  popularQuestions.map((q) => {
+                    const color = getSubjectColor(q.subject_code);
+                    return (
+                      <div key={q.id} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
+                        <div className={`px-2 py-1 rounded text-xs font-medium ${
+                          color === 'primary' ? 'bg-primary/10 text-primary' :
+                          color === 'secondary' ? 'bg-secondary/10 text-secondary' :
+                          'bg-accent/10 text-accent'
+                        }`}>
+                          {q.subject_code}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{q.question_text}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className={`text-xs ${getDifficultyColor(q.difficulty_level)}`}>{q.difficulty_level}</p>
+                            <span className="text-xs text-muted-foreground">• {q.ask_count} times asked</span>
+                          </div>
+                        </div>
+                        <CheckCircle className="h-4 w-4 text-accent flex-shrink-0" />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">No popular questions this week yet.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

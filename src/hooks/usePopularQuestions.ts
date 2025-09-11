@@ -45,14 +45,27 @@ export const usePopularQuestions = () => {
 
   const incrementQuestionCount = async (questionId: string) => {
     try {
-      const { error } = await supabase.rpc('increment_question_count', {
-        question_id: questionId
-      });
+      // Get current count first, then increment
+      const { data: current } = await supabase
+        .from('frequently_asked_questions')
+        .select('ask_count')
+        .eq('id', questionId)
+        .single();
 
-      if (error) throw error;
-      
-      // Refresh the questions after incrementing
-      fetchPopularQuestions();
+      if (current) {
+        const { error } = await supabase
+          .from('frequently_asked_questions')
+          .update({ 
+            ask_count: current.ask_count + 1,
+            last_asked_at: new Date().toISOString()
+          })
+          .eq('id', questionId);
+
+        if (error) throw error;
+        
+        // Refresh the questions after incrementing
+        fetchPopularQuestions();
+      }
     } catch (error) {
       console.error('Error incrementing question count:', error);
     }
