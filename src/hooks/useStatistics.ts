@@ -27,11 +27,11 @@ export const useStatistics = () => {
         .select('id')
         .in('code', ['BST', 'PVS', 'NV']);
 
-      // Get student count (users with student role or no role - default is student)
+      // Get active student count (users with explicit student role)
       const { data: students } = await supabase
         .from('profiles')
         .select('id')
-        .or('role.eq.student,role.is.null');
+        .eq('role', 'student');
 
       // Calculate success rate based on quiz attempts
       const { data: quizAttempts } = await supabase

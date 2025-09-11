@@ -73,7 +73,7 @@ const HeroSection = () => {
                 <div className="text-2xl font-bold text-secondary">
                   {loading ? "..." : stats.studentCount > 0 ? formatNumber(stats.studentCount) : "0"}
                 </div>
-                <div className="text-sm text-muted-foreground">Registered Students</div>
+                <div className="text-sm text-muted-foreground">Active Students</div>
               </div>
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-2">
