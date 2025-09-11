@@ -2,11 +2,13 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, BookOpen, Users, Trophy } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useStatistics } from "@/hooks/useStatistics";
 import heroImage from "@/assets/hero-education.jpg";
 
 const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { stats, loading } = useStatistics();
 
   const handleStartLearning = () => {
     if (user) {
@@ -19,6 +21,13 @@ const HeroSection = () => {
 
   const handleExploreSubjects = () => {
     document.getElementById("subjects")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return `${(num / 1000).toFixed(1)}K`;
+    }
+    return num.toString();
   };
 
   return (
@@ -52,22 +61,28 @@ const HeroSection = () => {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-2">
                   <BookOpen className="h-6 w-6 text-primary" />
                 </div>
-                <div className="text-2xl font-bold text-primary">3</div>
+                <div className="text-2xl font-bold text-primary">
+                  {loading ? "..." : stats.subjectCount}
+                </div>
                 <div className="text-sm text-muted-foreground">Core Subjects</div>
               </div>
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-secondary/10 mb-2">
                   <Users className="h-6 w-6 text-secondary" />
                 </div>
-                <div className="text-2xl font-bold text-secondary">10K+</div>
-                <div className="text-sm text-muted-foreground">Active Students</div>
+                <div className="text-2xl font-bold text-secondary">
+                  {loading ? "..." : stats.studentCount > 0 ? formatNumber(stats.studentCount) : "0"}
+                </div>
+                <div className="text-sm text-muted-foreground">Registered Students</div>
               </div>
               <div className="text-center">
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-accent/10 mb-2">
                   <Trophy className="h-6 w-6 text-accent" />
                 </div>
-                <div className="text-2xl font-bold text-accent">95%</div>
-                <div className="text-sm text-muted-foreground">Success Rate</div>
+                <div className="text-2xl font-bold text-accent">
+                  {loading ? "..." : stats.successRate > 0 ? `${stats.successRate}%` : "N/A"}
+                </div>
+                <div className="text-sm text-muted-foreground">Quiz Success Rate</div>
               </div>
             </div>
           </div>
