@@ -57,8 +57,13 @@ const ContentUploadForm = () => {
 
   useEffect(() => {
     fetchSubjects();
-    fetchExistingContent();
   }, []);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchExistingContent();
+    }
+  }, [user?.id]);
 
   useEffect(() => {
     if (selectedSubject) {
@@ -106,12 +111,16 @@ const ContentUploadForm = () => {
   };
 
   const fetchExistingContent = async () => {
-    const { data } = await supabase
+    if (!user?.id) return;
+    
+    console.log('Fetching content for user:', user.id);
+    const { data, error } = await supabase
       .from('content')
       .select('id, title, content_type, is_published, created_at')
       .eq('created_by', user?.id)
       .order('created_at', { ascending: false });
 
+    console.log('Fetched content:', data, 'Error:', error);
     setExistingContent(data || []);
   };
 
@@ -317,15 +326,20 @@ const ContentUploadForm = () => {
     </Card>
 
     {/* Existing Content */}
-    {existingContent.length > 0 && (
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Content ({existingContent.length})</CardTitle>
-          <CardDescription>
-            Manage your uploaded content modules
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+    <Card>
+      <CardHeader>
+        <CardTitle>Your Content ({existingContent.length})</CardTitle>
+        <CardDescription>
+          Manage your uploaded content modules
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {existingContent.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No content uploaded yet.</p>
+            <p className="text-sm text-muted-foreground mt-1">Upload your first module above to get started.</p>
+          </div>
+        ) : (
           <div className="space-y-4">
             {existingContent.map((content) => (
               <div key={content.id} className="flex items-center justify-between p-4 border rounded-lg">
@@ -367,9 +381,9 @@ const ContentUploadForm = () => {
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-    )}
+        )}
+      </CardContent>
+    </Card>
   </div>
   );
 };
