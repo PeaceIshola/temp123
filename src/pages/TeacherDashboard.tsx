@@ -78,7 +78,7 @@ const TeacherDashboard = () => {
       .eq('user_id', user.id)
       .single();
 
-    setIsTeacher(data?.role === 'teacher' || data?.role === 'admin');
+    setIsTeacher(data?.role === 'teacher');
   };
 
   const fetchSubjects = async () => {
