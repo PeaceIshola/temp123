@@ -6,14 +6,21 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useSecureProfiles } from "@/hooks/useSecureProfiles";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isTeacher, setIsTeacher] = useState(false);
+  const [displayEmail, setDisplayEmail] = useState<string>('');
+  const { anonymizeEmail } = useSecureProfiles();
 
   useEffect(() => {
     checkTeacherRole();
+    if (user?.email) {
+      // Anonymize email for display to prevent exposure
+      anonymizeEmail(user.email).then(setDisplayEmail);
+    }
   }, [user]);
 
   const checkTeacherRole = async () => {
@@ -118,9 +125,9 @@ const Header = () => {
                       {user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline text-sm">
-                    {user.email}
-                  </span>
+                   <span className="hidden md:inline text-sm">
+                     {displayEmail || 'User'}
+                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
