@@ -36,7 +36,7 @@ const QuizManagement = () => {
         topic_id,
         topics!inner(title)
       `)
-      .eq('content_type', 'exercise')
+      .eq('content_type', 'experiment')
       .eq('created_by', user?.id);
 
     if (data) {

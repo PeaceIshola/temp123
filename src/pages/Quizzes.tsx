@@ -51,7 +51,7 @@ const QuizzesPage = () => {
             )
           )
         `)
-        .eq('content_type', 'exercise')
+        .eq('content_type', 'experiment')
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 

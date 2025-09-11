@@ -202,7 +202,7 @@ const QuizCreateForm = () => {
           topic_id: selectedTopic,
           title: quizTitle,
           content: `Quiz with ${questions.length} questions`,
-          content_type: "exercise",
+          content_type: "experiment",
           created_by: user?.id,
           is_published: true
         })
