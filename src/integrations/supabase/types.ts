@@ -144,6 +144,36 @@ export type Database = {
           },
         ]
       }
+      profile_access_logs: {
+        Row: {
+          access_type: string
+          accessed_at: string | null
+          accessed_user_id: string
+          accessor_user_id: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+        }
+        Insert: {
+          access_type: string
+          accessed_at?: string | null
+          accessed_user_id: string
+          accessor_user_id: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Update: {
+          access_type?: string
+          accessed_at?: string | null
+          accessed_user_id?: string
+          accessor_user_id?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -518,11 +548,47 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      student_info_for_teachers: {
+        Row: {
+          anonymized_email: string | null
+          created_at: string | null
+          full_name: string | null
+          grade_level: number | null
+          id: string | null
+          role: string | null
+          school_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          anonymized_email?: never
+          created_at?: string | null
+          full_name?: string | null
+          grade_level?: number | null
+          id?: string | null
+          role?: string | null
+          school_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          anonymized_email?: never
+          created_at?: string | null
+          full_name?: string | null
+          grade_level?: number | null
+          id?: string | null
+          role?: string | null
+          school_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_subscription_status: {
         Args: { p_subject_id: string }
+        Returns: string
+      }
+      get_anonymized_email: {
+        Args: { email: string }
         Returns: string
       }
       get_platform_statistics: {
@@ -539,6 +605,25 @@ export type Database = {
           question_text: string
           question_type: string
           topic_id: string
+        }[]
+      }
+      get_safe_user_display: {
+        Args: { p_user_id: string }
+        Returns: {
+          display_name: string
+          grade_level: number
+          id: string
+          role: string
+        }[]
+      }
+      get_students_for_teacher: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          anonymized_email: string
+          full_name: string
+          grade_level: number
+          school_name: string
+          student_id: string
         }[]
       }
       increment_question_count: {
