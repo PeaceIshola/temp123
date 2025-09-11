@@ -103,7 +103,7 @@ const SubjectExplorer = () => {
 
     setTopics(topicsData || []);
 
-    // Fetch content for this sub-subject
+    // Fetch content for this sub-subject (exclude quizzes/experiments)
     const { data: contentData } = await supabase
       .from('content')
       .select(`
@@ -114,6 +114,7 @@ const SubjectExplorer = () => {
         )
       `)
       .eq('is_published', true)
+      .neq('content_type', 'experiment')
       .in('topic_id', (topicsData || []).map(t => t.id))
       .order('created_at', { ascending: false });
 

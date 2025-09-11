@@ -112,10 +112,8 @@ const QuizzesPage = () => {
       return;
     }
 
-    // Navigate to subject explorer with quiz
-    navigate(`/explore/${quiz.subject_code.toLowerCase()}`, { 
-      state: { selectedTopicId: quiz.topic_id } 
-    });
+    // Navigate to dedicated quiz-taking page
+    navigate(`/quiz/${quiz.id}`);
   };
 
   const getSubjectColor = (subjectCode: string) => {
