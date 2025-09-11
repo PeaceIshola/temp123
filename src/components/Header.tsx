@@ -56,9 +56,12 @@ const Header = () => {
           <a href="#homework" className="text-sm font-medium hover:text-primary transition-colors">
             Homework Help
           </a>
-          <a href="#quizzes" className="text-sm font-medium hover:text-primary transition-colors">
+          <button 
+            onClick={() => navigate("/quizzes")} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
             Quizzes
-          </a>
+          </button>
           <a href="#resources" className="text-sm font-medium hover:text-primary transition-colors">
             Resources
           </a>
