@@ -34,6 +34,7 @@ const QuizzesPage = () => {
   }, []);
 
   const fetchQuizzes = async () => {
+    console.log('Fetching quizzes...');
     try {
       // Get all published quiz content
       const { data: quizContent } = await supabase
@@ -55,13 +56,22 @@ const QuizzesPage = () => {
         .eq('is_published', true)
         .order('created_at', { ascending: false });
 
+      console.log('Fetched quiz content:', quizContent);
+
       if (quizContent) {
+        console.log('Processing', quizContent.length, 'quiz content items');
         const quizData = await Promise.all(
           quizContent.map(async (content) => {
-            const { data: questions } = await supabase
+            console.log('Processing content:', content);
+            const { data: questions, error: questionsError } = await supabase
               .from('questions')
               .select('points')
               .eq('topic_id', content.topic_id);
+
+            if (questionsError) {
+              console.error('Error fetching questions for topic', content.topic_id, ':', questionsError);
+            }
+            console.log('Questions for', content.title, ':', questions);
 
             return {
               id: content.id,
@@ -77,6 +87,7 @@ const QuizzesPage = () => {
           })
         );
 
+        console.log('Processed quiz data:', quizData);
         setQuizzes(quizData);
       }
     } catch (error) {

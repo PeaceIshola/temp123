@@ -195,6 +195,8 @@ const QuizCreateForm = () => {
     setLoading(true);
 
     try {
+      console.log('Creating quiz with', questions.length, 'questions for topic:', selectedTopic);
+      
       // First create the content entry for the quiz
       const { data: contentData, error: contentError } = await supabase
         .from('content')
@@ -210,6 +212,7 @@ const QuizCreateForm = () => {
         .single();
 
       if (contentError) throw contentError;
+      console.log('Content created:', contentData);
 
       // Then create all questions
       const questionsToInsert = questions.map(q => ({
@@ -224,11 +227,14 @@ const QuizCreateForm = () => {
         created_by: user?.id
       }));
 
+      console.log('Inserting questions:', questionsToInsert);
+
       const { error: questionsError } = await supabase
         .from('questions')
         .insert(questionsToInsert);
 
       if (questionsError) throw questionsError;
+      console.log('Quiz created successfully with all questions');
 
       toast({
         title: "Success!",
