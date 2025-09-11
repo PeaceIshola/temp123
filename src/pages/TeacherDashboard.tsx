@@ -11,26 +11,31 @@ import SolutionsForm from "@/components/teacher/SolutionsForm";
 
 
 const TeacherDashboard = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
 
   useEffect(() => {
-    checkTeacherRole();
-  }, [user]);
-
-  const checkTeacherRole = async () => {
+    if (loading) return;
     if (!user) {
       setIsTeacher(false);
       return;
     }
+    checkTeacherRole();
+  }, [user, loading]);
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    setIsTeacher(data?.role === 'teacher');
+  const checkTeacherRole = async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_current_user_role');
+      if (error) {
+        console.error('Error fetching role via RPC:', error);
+        setIsTeacher(false);
+        return;
+      }
+      setIsTeacher((data as string) === 'teacher');
+    } catch (e) {
+      console.error('Unexpected error checking role:', e);
+      setIsTeacher(false);
+    }
   };
 
 
