@@ -33,16 +33,6 @@ const SubjectsSection = () => {
     }
   };
 
-  const handleViewAllSubjects = () => {
-    if (user) {
-      toast({
-        title: "Coming Soon!",
-        description: "Full subject catalog will be available soon.",
-      });
-    } else {
-      navigate("/auth");
-    }
-  };
 
   const subjects = [
     {
@@ -144,12 +134,6 @@ const SubjectsSection = () => {
               </CardContent>
             </Card>
           ))}
-        </div>
-
-        <div className="text-center">
-          <Button variant="hero" size="lg" onClick={handleViewAllSubjects}>
-            View All Subjects
-          </Button>
         </div>
       </div>
     </section>
