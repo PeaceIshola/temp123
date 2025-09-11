@@ -12,6 +12,7 @@ import SubjectExplorer from "./pages/SubjectExplorer";
 import Quizzes from "./pages/Quizzes";
 import TakeQuiz from "./pages/TakeQuiz";
 import Resources from "./pages/Resources";
+import Subscriptions from "./pages/Subscriptions";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<TakeQuiz />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/explore/:subjectCode" element={<SubjectExplorer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
