@@ -11,6 +11,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import SubjectExplorer from "./pages/SubjectExplorer";
 import Quizzes from "./pages/Quizzes";
 import TakeQuiz from "./pages/TakeQuiz";
+import Resources from "./pages/Resources";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +28,7 @@ const App = () => (
             <Route path="/teacher" element={<TeacherDashboard />} />
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<TakeQuiz />} />
+            <Route path="/resources" element={<Resources />} />
             <Route path="/explore/:subjectCode" element={<SubjectExplorer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

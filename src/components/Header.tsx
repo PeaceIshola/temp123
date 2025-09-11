@@ -95,7 +95,7 @@ const Header = () => {
             Quizzes
           </button>
           <button 
-            onClick={() => handleNavigation('resources')} 
+            onClick={() => navigate("/resources")} 
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Resources
