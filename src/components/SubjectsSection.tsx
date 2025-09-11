@@ -21,13 +21,9 @@ const SubjectsSection = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubjectClick = (subjectTitle: string) => {
+  const handleSubjectClick = (subjectCode: string) => {
     if (user) {
-      // TODO: Navigate to subject page when implemented
-      toast({
-        title: "Coming Soon!",
-        description: `${subjectTitle} lessons will be available soon.`,
-      });
+      navigate(`/explore/${subjectCode.toLowerCase()}`);
     } else {
       toast({
         title: "Sign in required",
@@ -140,7 +136,7 @@ const SubjectsSection = () => {
                 <Button 
                   variant="subject" 
                   className="w-full group"
-                  onClick={() => handleSubjectClick(subject.title)}
+                  onClick={() => handleSubjectClick(subject.id)}
                 >
                   Explore {subject.title.split(" ")[0]}
                   <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />

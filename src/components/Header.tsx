@@ -1,13 +1,35 @@
-import { Book, Menu, GraduationCap, LogOut, User } from "lucide-react";
+import { Book, Menu, GraduationCap, LogOut, User, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [isTeacher, setIsTeacher] = useState(false);
+
+  useEffect(() => {
+    checkTeacherRole();
+  }, [user]);
+
+  const checkTeacherRole = async () => {
+    if (!user) {
+      setIsTeacher(false);
+      return;
+    }
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    setIsTeacher(data?.role === 'teacher' || data?.role === 'admin');
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -62,6 +84,12 @@ const Header = () => {
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
+                {isTeacher && (
+                  <DropdownMenuItem onClick={() => navigate("/teacher")}>
+                    <BookOpen className="h-4 w-4 mr-2" />
+                    Teacher Dashboard
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
