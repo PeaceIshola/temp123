@@ -26,6 +26,9 @@ interface PDFUploadProps {
     subject?: string;
     area?: string;
     topic?: string;
+    subjectId?: string;
+    subSubjectId?: string;
+    topicId?: string;
   };
 }
 
@@ -57,53 +60,54 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
     }
   };
 
-  const createContentRecord = async (fileName: string, uploadMetadata: { subject?: string; area?: string; topic?: string }) => {
+  const createContentRecord = async (fileName: string, uploadMetadata: { subjectId?: string; subSubjectId?: string; topicId?: string; subject?: string; area?: string; topic?: string }) => {
     try {
-      // First, get the subject ID
-      const { data: subjects } = await supabase
-        .from('subjects')
-        .select('id')
-        .eq('code', uploadMetadata.subject?.toUpperCase())
-        .single();
-
-      if (!subjects) return;
-
-      // Get the sub-subject (area) ID
-      const { data: subSubjects } = await supabase
-        .from('sub_subjects')
-        .select('id')
-        .eq('subject_id', subjects.id)
-        .eq('name', uploadMetadata.area)
-        .single();
-
-      if (!subSubjects) return;
-
-      // Get or create the topic
-      let topicId;
-      const { data: existingTopic } = await supabase
-        .from('topics')
-        .select('id')
-        .eq('sub_subject_id', subSubjects.id)
-        .eq('title', uploadMetadata.topic)
-        .single();
-
-      if (existingTopic) {
-        topicId = existingTopic.id;
-      } else {
-        // Create new topic
-        const { data: newTopic } = await supabase
-          .from('topics')
-          .insert({
-            sub_subject_id: subSubjects.id,
-            title: uploadMetadata.topic,
-            description: `Learning materials for ${uploadMetadata.topic}`,
-            content: ''
-          })
+      let topicId = uploadMetadata.topicId;
+      
+      // If we have a topicId, use it directly
+      if (!topicId && uploadMetadata.subject && uploadMetadata.area && uploadMetadata.topic) {
+        // Fallback to old method - find or create topic
+        const { data: subjects } = await supabase
+          .from('subjects')
           .select('id')
+          .eq('code', uploadMetadata.subject?.toUpperCase())
           .single();
-        
-        if (newTopic) {
-          topicId = newTopic.id;
+
+        if (!subjects) return;
+
+        const { data: subSubjects } = await supabase
+          .from('sub_subjects')
+          .select('id')
+          .eq('subject_id', subjects.id)
+          .eq('name', uploadMetadata.area)
+          .single();
+
+        if (!subSubjects) return;
+
+        const { data: existingTopic } = await supabase
+          .from('topics')
+          .select('id')
+          .eq('sub_subject_id', subSubjects.id)
+          .eq('title', uploadMetadata.topic)
+          .single();
+
+        if (existingTopic) {
+          topicId = existingTopic.id;
+        } else {
+          const { data: newTopic } = await supabase
+            .from('topics')
+            .insert({
+              sub_subject_id: subSubjects.id,
+              title: uploadMetadata.topic,
+              description: `Learning materials for ${uploadMetadata.topic}`,
+              content: ''
+            })
+            .select('id')
+            .single();
+          
+          if (newTopic) {
+            topicId = newTopic.id;
+          }
         }
       }
 
@@ -121,9 +125,7 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
             metadata: {
               fileName,
               bucketName,
-              subject: uploadMetadata.subject,
-              area: uploadMetadata.area,
-              topic: uploadMetadata.topic
+              ...uploadMetadata
             }
           });
       }
@@ -188,7 +190,7 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
       if (error) throw error;
 
       // If metadata is provided, also create a content record in the database
-      if (metadata && metadata.subject && metadata.area && metadata.topic) {
+      if (metadata && (metadata.topicId || (metadata.subject && metadata.area && metadata.topic))) {
         await createContentRecord(fileName, metadata);
       }
 

@@ -1,52 +1,109 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PDFUpload from "./PDFUpload";
-import { Upload, Microscope, Leaf, Computer, Heart, Wheat, Home, Scale, MapPin, Shield } from "lucide-react";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Subject {
+  id: string;
+  name: string;
+  code: string;
+}
+
+interface SubSubject {
+  id: string;
+  name: string;
+  subject_id: string;
+}
+
+interface Topic {
+  id: string;
+  title: string;
+  sub_subject_id: string;
+}
 
 const ContentUploadForm = () => {
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedArea, setSelectedArea] = useState("");
+  const [selectedSubSubject, setSelectedSubSubject] = useState("");
   const [selectedTopic, setSelectedTopic] = useState("");
 
-  const subjects = [
-    {
-      id: "bst",
-      title: "Basic Science & Technology (BST)",
-      subareas: [
-        { name: "Basic Science", icon: Microscope, topics: ["Photosynthesis", "Human Body Systems", "Energy & Forces"] },
-        { name: "Basic Technology", icon: Computer, topics: ["Simple Machines", "Electrical Circuits", "Materials"] },
-        { name: "ICT", icon: Computer, topics: ["Computer Basics", "Internet Safety", "Digital Skills"] },
-        { name: "PHE", icon: Heart, topics: ["Nutrition", "Exercise", "First Aid"] }
-      ]
-    },
-    {
-      id: "pvs", 
-      title: "Prevocational Studies (PVS)",
-      subareas: [
-        { name: "Agriculture", icon: Wheat, topics: ["Crop Production", "Animal Husbandry", "Farm Tools"] },
-        { name: "Home Economics", icon: Home, topics: ["Nutrition", "Home Management", "Clothing & Textiles"] }
-      ]
-    },
-    {
-      id: "nv",
-      title: "National Values Education (NV)",
-      subareas: [
-        { name: "Civic Education", icon: Scale, topics: ["Democracy", "Rights & Duties", "Government"] },
-        { name: "Social Studies", icon: MapPin, topics: ["Nigerian Culture", "Geography", "Transportation"] },
-        { name: "Security Education", icon: Shield, topics: ["Safety Tips", "Emergency Response", "Conflict Resolution"] }
-      ]
-    }
-  ];
+  useEffect(() => {
+    fetchSubjects();
+  }, []);
 
-  const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
-  const selectedAreaData = selectedSubjectData?.subareas.find(a => a.name === selectedArea);
+  useEffect(() => {
+    if (selectedSubject) {
+      fetchSubSubjects(selectedSubject);
+      setSelectedSubSubject("");
+      setSelectedTopic("");
+    }
+  }, [selectedSubject]);
+
+  useEffect(() => {
+    if (selectedSubSubject) {
+      fetchTopics(selectedSubSubject);
+      setSelectedTopic("");
+    }
+  }, [selectedSubSubject]);
+
+  const fetchSubjects = async () => {
+    const { data } = await supabase
+      .from('subjects')
+      .select('*')
+      .in('code', ['BST', 'PVS', 'NV'])
+      .order('name');
+
+    setSubjects(data || []);
+  };
+
+  const fetchSubSubjects = async (subjectId: string) => {
+    const { data } = await supabase
+      .from('sub_subjects')
+      .select('*')
+      .eq('subject_id', subjectId)
+      .order('name');
+
+    setSubSubjects(data || []);
+  };
+
+  const fetchTopics = async (subSubjectId: string) => {
+    const { data } = await supabase
+      .from('topics')
+      .select('*')
+      .eq('sub_subject_id', subSubjectId)
+      .order('title');
+
+    setTopics(data || []);
+  };
 
   const resetSelections = () => {
     setSelectedSubject("");
-    setSelectedArea("");
+    setSelectedSubSubject("");
     setSelectedTopic("");
+  };
+
+  // Get the selected data for metadata
+  const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
+  const selectedSubSubjectData = subSubjects.find(s => s.id === selectedSubSubject);
+  const selectedTopicData = topics.find(t => t.id === selectedTopic);
+
+  const getMetadata = () => {
+    if (!selectedSubjectData || !selectedSubSubjectData || !selectedTopicData) return undefined;
+    
+    return {
+      subject: selectedSubjectData.code,
+      area: selectedSubSubjectData.name,
+      topic: selectedTopicData.title,
+      subjectId: selectedSubject,
+      subSubjectId: selectedSubSubject,
+      topicId: selectedTopic
+    };
   };
 
   return (
@@ -60,66 +117,56 @@ const ContentUploadForm = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid md:grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Subject</label>
-              <Select value={selectedSubject} onValueChange={(value) => {
-                setSelectedSubject(value);
-                setSelectedArea("");
-                setSelectedTopic("");
-              }}>
+            <div className="space-y-2">
+              <Label htmlFor="subject">Subject</Label>
+              <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select subject" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
                   {subjects.map((subject) => (
                     <SelectItem key={subject.id} value={subject.id}>
-                      {subject.title}
+                      {subject.name} ({subject.code})
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Area</label>
+            <div className="space-y-2">
+              <Label htmlFor="subsubject">Area</Label>
               <Select 
-                value={selectedArea} 
-                onValueChange={(value) => {
-                  setSelectedArea(value);
-                  setSelectedTopic("");
-                }}
+                value={selectedSubSubject} 
+                onValueChange={setSelectedSubSubject}
                 disabled={!selectedSubject}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select area" />
                 </SelectTrigger>
-                <SelectContent>
-                  {selectedSubjectData?.subareas.map((area) => (
-                    <SelectItem key={area.name} value={area.name}>
-                      <div className="flex items-center gap-2">
-                        <area.icon className="h-4 w-4" />
-                        {area.name}
-                      </div>
+                <SelectContent className="bg-background border z-50">
+                  {subSubjects.map((subSubject) => (
+                    <SelectItem key={subSubject.id} value={subSubject.id}>
+                      {subSubject.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Topic</label>
+            <div className="space-y-2">
+              <Label htmlFor="topic">Topic</Label>
               <Select 
                 value={selectedTopic} 
                 onValueChange={setSelectedTopic}
-                disabled={!selectedArea}
+                disabled={!selectedSubSubject}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select topic" />
                 </SelectTrigger>
-                <SelectContent>
-                  {selectedAreaData?.topics.map((topic) => (
-                    <SelectItem key={topic} value={topic}>
-                      {topic}
+                <SelectContent className="bg-background border z-50">
+                  {topics.map((topic) => (
+                    <SelectItem key={topic.id} value={topic.id}>
+                      {topic.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -127,12 +174,13 @@ const ContentUploadForm = () => {
             </div>
           </div>
 
-          {(selectedSubject || selectedArea || selectedTopic) && (
+          {(selectedSubject || selectedSubSubject || selectedTopic) && (
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div className="text-sm">
-                <strong>Selected:</strong> {selectedSubject && subjects.find(s => s.id === selectedSubject)?.title}
-                {selectedArea && ` > ${selectedArea}`}
-                {selectedTopic && ` > ${selectedTopic}`}
+                <strong>Selected:</strong> 
+                {selectedSubjectData && ` ${selectedSubjectData.name}`}
+                {selectedSubSubjectData && ` > ${selectedSubSubjectData.name}`}
+                {selectedTopicData && ` > ${selectedTopicData.title}`}
               </div>
               <Button variant="outline" size="sm" onClick={resetSelections}>
                 Clear
@@ -147,11 +195,7 @@ const ContentUploadForm = () => {
         title="Upload Content PDFs"
         description="Upload educational content materials as PDF files"
         icon={<Upload className="h-5 w-5" />}
-        metadata={{
-          subject: selectedSubject,
-          area: selectedArea,
-          topic: selectedTopic
-        }}
+        metadata={getMetadata()}
       />
     </div>
   );
