@@ -47,7 +47,7 @@ const SolutionBank = () => {
     try {
       setLoading(true);
       
-      // Fetch content with content_type that would indicate solutions
+      // Fetch content from solution-pdfs bucket
       const { data: solutionData } = await supabase
         .from('content')
         .select(`
@@ -58,8 +58,8 @@ const SolutionBank = () => {
           )
         `)
         .eq('is_published', true)
-        .or('content_type.eq.pdf,content.ilike.%solution%,title.ilike.%solution%')
-        .like('metadata->>bucketName', '%solution%')
+        .eq('content_type', 'pdf')
+        .eq('metadata->>bucketName', 'solution-pdfs')
         .order('created_at', { ascending: true });
 
       setSolutions(solutionData || []);
