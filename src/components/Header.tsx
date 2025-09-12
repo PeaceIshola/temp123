@@ -121,7 +121,7 @@ const Header = () => {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => navigate("/settings")}>
                   <User className="h-4 w-4 mr-2" />
-                  Settings
+                  Profile
                 </DropdownMenuItem>
                 {isTeacher && (
                   <DropdownMenuItem onClick={() => navigate("/teacher")}>
