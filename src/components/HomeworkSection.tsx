@@ -36,10 +36,7 @@ const HomeworkSection = () => {
 
   const handleBrowseSolutions = () => {
     if (user) {
-      toast({
-        title: "Coming Soon!",
-        description: "Solution bank will be available soon.",
-      });
+      navigate("/solution-bank");
     } else {
       navigate("/auth");
     }
