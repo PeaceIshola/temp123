@@ -1,4 +1,4 @@
-import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings } from "lucide-react";
+import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -122,6 +122,10 @@ const Header = () => {
                 <DropdownMenuItem onClick={() => navigate("/settings")}>
                   <User className="h-4 w-4 mr-2" />
                   Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/subscriptions")}>
+                  <Crown className="h-4 w-4 mr-2" />
+                  Subscriptions
                 </DropdownMenuItem>
                 {isTeacher && (
                   <DropdownMenuItem onClick={() => navigate("/teacher")}>
