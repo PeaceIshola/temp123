@@ -25,13 +25,19 @@ const TeacherDashboard = () => {
 
   const checkTeacherRole = async () => {
     try {
+      console.log('Checking teacher role for user:', user?.id);
       const { data, error } = await supabase.rpc('get_current_user_role');
+      console.log('RPC response:', { data, error });
+      
       if (error) {
         console.error('Error fetching role via RPC:', error);
         setIsTeacher(false);
         return;
       }
-      setIsTeacher((data as string) === 'teacher');
+      
+      const role = data as string;
+      console.log('User role:', role);
+      setIsTeacher(role === 'teacher');
     } catch (e) {
       console.error('Unexpected error checking role:', e);
       setIsTeacher(false);
