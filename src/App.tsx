@@ -14,6 +14,7 @@ import TakeQuiz from "./pages/TakeQuiz";
 import Resources from "./pages/Resources";
 import Subscriptions from "./pages/Subscriptions";
 import SolutionBank from "./pages/SolutionBank";
+import Settings from "./pages/Settings";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/resources" element={<Resources />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/solution-bank" element={<SolutionBank />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/explore/:subjectCode" element={<SubjectExplorer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

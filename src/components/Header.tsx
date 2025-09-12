@@ -1,4 +1,4 @@
-import { Book, Menu, GraduationCap, LogOut, User, BookOpen } from "lucide-react";
+import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -105,12 +105,6 @@ const Header = () => {
           >
             Quizzes
           </button>
-          <button 
-            onClick={() => navigate("/subscriptions")} 
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Subscriptions
-          </button>
         </nav>
 
         <div className="flex items-center gap-2">
@@ -118,20 +112,16 @@ const Header = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback>
-                      {user.email?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                   <span className="hidden md:inline text-sm">
-                     {displayEmail || 'User'}
-                   </span>
+                  <Settings className="h-4 w-4" />
+                  <span className="hidden md:inline text-sm">
+                    Settings
+                  </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <DropdownMenuItem onClick={() => navigate("/settings")}>
                   <User className="h-4 w-4 mr-2" />
-                  Profile
+                  Settings
                 </DropdownMenuItem>
                 {isTeacher && (
                   <DropdownMenuItem onClick={() => navigate("/teacher")}>
