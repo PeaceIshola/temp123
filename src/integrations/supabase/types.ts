@@ -61,6 +61,86 @@ export type Database = {
           },
         ]
       }
+      forum_answers: {
+        Row: {
+          answer_text: string
+          created_at: string
+          id: string
+          is_accepted: boolean | null
+          question_id: string
+          updated_at: string
+          user_id: string
+          votes: number | null
+        }
+        Insert: {
+          answer_text: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean | null
+          question_id: string
+          updated_at?: string
+          user_id: string
+          votes?: number | null
+        }
+        Update: {
+          answer_text?: string
+          created_at?: string
+          id?: string
+          is_accepted?: boolean | null
+          question_id?: string
+          updated_at?: string
+          user_id?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forum_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_questions: {
+        Row: {
+          created_at: string
+          difficulty_level: string
+          id: string
+          is_answered: boolean | null
+          question_text: string
+          subject_code: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty_level?: string
+          id?: string
+          is_answered?: boolean | null
+          question_text: string
+          subject_code: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty_level?: string
+          id?: string
+          is_answered?: boolean | null
+          question_text?: string
+          subject_code?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       frequently_asked_questions: {
         Row: {
           ask_count: number

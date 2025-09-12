@@ -21,10 +21,7 @@ const HomeworkSection = () => {
 
   const handleAskQuestion = () => {
     if (user) {
-      toast({
-        title: "Coming Soon!",
-        description: "Question submission feature will be available soon.",
-      });
+      navigate("/forum");
     } else {
       toast({
         title: "Sign in required",
