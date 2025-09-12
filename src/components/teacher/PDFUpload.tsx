@@ -23,9 +23,14 @@ interface PDFUploadProps {
   title: string;
   description: string;
   icon: React.ReactNode;
+  metadata?: {
+    subject?: string;
+    area?: string;
+    topic?: string;
+  };
 }
 
-const PDFUpload = ({ bucketName, title, description, icon }: PDFUploadProps) => {
+const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUploadProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
