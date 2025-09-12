@@ -105,6 +105,12 @@ const Header = () => {
           >
             Quizzes
           </button>
+          <button 
+            onClick={() => navigate("/subscriptions")} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Subscriptions
+          </button>
         </nav>
 
         <div className="flex items-center gap-2">
