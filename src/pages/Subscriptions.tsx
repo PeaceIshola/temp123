@@ -157,8 +157,8 @@ const SubscriptionsPage = () => {
 
               <CardContent className="space-y-6">
                 <div className="text-center">
-                  <span className="text-4xl font-bold">₦5,000</span>
-                  <span className="text-muted-foreground">/year</span>
+                  <span className="text-4xl font-bold">₦500</span>
+                  <span className="text-muted-foreground">/month</span>
                 </div>
                 
                 <ul className="space-y-3">
