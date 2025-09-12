@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   MessageSquare, 
   Plus, 
@@ -19,7 +20,11 @@ import {
   Clock, 
   CheckCircle, 
   MessageCircle,
-  ArrowLeft
+  ArrowLeft,
+  Reply,
+  ChevronDown,
+  ChevronRight,
+  Send
 } from "lucide-react";
 
 interface ForumQuestion {
@@ -32,6 +37,19 @@ interface ForumQuestion {
   created_at: string;
   user_id: string;
   tags: string[];
+  answers?: ForumAnswer[];
+}
+
+interface ForumAnswer {
+  id: string;
+  question_id: string;
+  user_id: string;
+  answer_text: string;
+  is_accepted: boolean;
+  votes: number;
+  created_at: string;
+  updated_at: string;
+  replies?: ForumAnswer[];
 }
 
 const Forum = () => {
@@ -41,6 +59,9 @@ const Forum = () => {
   const [questions, setQuestions] = useState<ForumQuestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<string>>(new Set());
+  const [replyingTo, setReplyingTo] = useState<{ questionId?: string; answerId?: string } | null>(null);
+  const [replyText, setReplyText] = useState("");
   const [formData, setFormData] = useState({
     title: "",
     question_text: "",
@@ -58,13 +79,32 @@ const Forum = () => {
 
   const fetchQuestions = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: questionsData, error: questionsError } = await supabase
         .from('forum_questions')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setQuestions(data || []);
+      if (questionsError) throw questionsError;
+
+      // Fetch answers for each question
+      const questionsWithAnswers = await Promise.all(
+        (questionsData || []).map(async (question) => {
+          const { data: answersData, error: answersError } = await supabase
+            .from('forum_answers')
+            .select('*')
+            .eq('question_id', question.id)
+            .order('created_at', { ascending: true });
+
+          if (answersError) {
+            console.error('Error fetching answers:', answersError);
+            return { ...question, answers: [] };
+          }
+
+          return { ...question, answers: answersData || [] };
+        })
+      );
+
+      setQuestions(questionsWithAnswers);
     } catch (error) {
       console.error('Error fetching questions:', error);
       toast({
@@ -112,6 +152,49 @@ const Forum = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !replyText.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('forum_answers')
+        .insert({
+          question_id: replyingTo?.questionId,
+          user_id: user.id,
+          answer_text: replyText.trim()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Your reply has been posted."
+      });
+
+      setReplyText("");
+      setReplyingTo(null);
+      fetchQuestions();
+    } catch (error) {
+      console.error('Error posting reply:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post your reply. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const toggleExpanded = (questionId: string) => {
+    const newExpanded = new Set(expandedQuestions);
+    if (newExpanded.has(questionId)) {
+      newExpanded.delete(questionId);
+    } else {
+      newExpanded.add(questionId);
+    }
+    setExpandedQuestions(newExpanded);
   };
 
   const getSubjectColor = (subjectCode: string) => {
@@ -285,12 +368,142 @@ const Forum = () => {
                               <Clock className="h-4 w-4" />
                               {new Date(question.created_at).toLocaleDateString()}
                             </span>
+                            <span className="flex items-center gap-1">
+                              <MessageCircle className="h-4 w-4" />
+                              {question.answers?.length || 0} replies
+                            </span>
                           </div>
-                          <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                            <MessageCircle className="h-4 w-4" />
-                            Answer
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => setReplyingTo({ questionId: question.id })}
+                              className="flex items-center gap-1"
+                            >
+                              <Reply className="h-4 w-4" />
+                              Reply
+                            </Button>
+                            {question.answers && question.answers.length > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleExpanded(question.id)}
+                                className="flex items-center gap-1"
+                              >
+                                {expandedQuestions.has(question.id) ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                                {expandedQuestions.has(question.id) ? 'Hide' : 'Show'} Replies
+                              </Button>
+                            )}
+                          </div>
                         </div>
+
+                        {/* Reply Form */}
+                        {replyingTo?.questionId === question.id && (
+                          <div className="mt-4 p-4 border rounded-lg bg-muted/30">
+                            <form onSubmit={handleReply} className="space-y-3">
+                              <Textarea
+                                placeholder="Write your reply..."
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                rows={3}
+                                required
+                              />
+                              <div className="flex gap-2">
+                                <Button type="submit" size="sm" className="flex items-center gap-1">
+                                  <Send className="h-4 w-4" />
+                                  Post Reply
+                                </Button>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => setReplyingTo(null)}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </form>
+                          </div>
+                        )}
+
+                        {/* Answers/Replies */}
+                        {expandedQuestions.has(question.id) && question.answers && question.answers.length > 0 && (
+                          <div className="mt-4 space-y-3">
+                            <Separator />
+                            <h4 className="font-medium text-foreground">Replies ({question.answers.length})</h4>
+                            <div className="space-y-3">
+                              {question.answers.map((answer) => (
+                                <div key={answer.id} className="p-4 border rounded-lg bg-muted/20">
+                                  <div className="space-y-2">
+                                    <p className="text-foreground">{answer.answer_text}</p>
+                                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                                      <div className="flex items-center gap-3">
+                                        <span className="flex items-center gap-1">
+                                          <User className="h-3 w-3" />
+                                          Student
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {new Date(answer.created_at).toLocaleDateString()}
+                                        </span>
+                                        {answer.is_accepted && (
+                                          <Badge className="bg-accent/10 text-accent">
+                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                            Accepted
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs">👍 {answer.votes}</span>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm"
+                                          onClick={() => setReplyingTo({ questionId: question.id, answerId: answer.id })}
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          Reply
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    
+                                    {/* Nested Reply Form */}
+                                    {replyingTo?.answerId === answer.id && (
+                                      <div className="mt-3 p-3 border rounded bg-background/50">
+                                        <form onSubmit={handleReply} className="space-y-3">
+                                          <Textarea
+                                            placeholder="Reply to this answer..."
+                                            value={replyText}
+                                            onChange={(e) => setReplyText(e.target.value)}
+                                            rows={2}
+                                            required
+                                          />
+                                          <div className="flex gap-2">
+                                            <Button type="submit" size="sm" className="flex items-center gap-1">
+                                              <Send className="h-4 w-4" />
+                                              Reply
+                                            </Button>
+                                            <Button 
+                                              type="button" 
+                                              variant="outline" 
+                                              size="sm"
+                                              onClick={() => setReplyingTo(null)}
+                                            >
+                                              Cancel
+                                            </Button>
+                                          </div>
+                                        </form>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </CardContent>
