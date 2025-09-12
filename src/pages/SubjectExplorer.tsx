@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, BookOpen, FileText, Video, ClipboardList } from "lucide-react";
+import { ArrowLeft, BookOpen, FileText, Video, ClipboardList, Download, Eye, EyeOff } from "lucide-react";
 
 interface Subject {
   id: string;
@@ -51,6 +51,7 @@ const SubjectExplorer = () => {
   const [content, setContent] = useState<Content[]>([]);
   const [selectedSubSubject, setSelectedSubSubject] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expandedPDFs, setExpandedPDFs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (subjectCode) {
@@ -142,6 +143,29 @@ const SubjectExplorer = () => {
     } catch (error: any) {
       console.error('Download error:', error);
     }
+  };
+
+  const getPDFViewUrl = async (fileName: string, bucketName: string) => {
+    try {
+      const { data } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(fileName, 3600); // 1 hour expiry
+      
+      return data?.signedUrl;
+    } catch (error) {
+      console.error('Error getting PDF URL:', error);
+      return null;
+    }
+  };
+
+  const togglePDFView = (contentId: string) => {
+    const newExpanded = new Set(expandedPDFs);
+    if (newExpanded.has(contentId)) {
+      newExpanded.delete(contentId);
+    } else {
+      newExpanded.add(contentId);
+    }
+    setExpandedPDFs(newExpanded);
   };
 
   const getContentIcon = (contentType: string) => {
@@ -297,17 +321,13 @@ const SubjectExplorer = () => {
                               {new Date(item.created_at).toLocaleDateString()}
                             </div>
                             {item.content_type === 'pdf' && item.metadata?.fileName ? (
-                              <div className="space-y-3">
-                                <p className="text-sm text-muted-foreground">PDF Learning Material</p>
-                                <Button 
-                                  variant="outline" 
-                                  onClick={() => downloadFile(item.metadata.fileName, item.metadata.bucketName || 'content-pdfs')}
-                                  className="flex items-center gap-2"
-                                >
-                                  <FileText className="h-4 w-4" />
-                                  Download PDF
-                                </Button>
-                              </div>
+                              <PDFContentViewer
+                                item={item}
+                                isExpanded={expandedPDFs.has(item.id)}
+                                onToggleView={() => togglePDFView(item.id)}
+                                onDownload={() => downloadFile(item.metadata.fileName, item.metadata.bucketName || 'content-pdfs')}
+                                getPDFViewUrl={getPDFViewUrl}
+                              />
                             ) : (
                               <div className="whitespace-pre-wrap">{item.content}</div>
                             )}
@@ -322,6 +342,83 @@ const SubjectExplorer = () => {
           </div>
         </div>
       </div>
+    </div>
+  );
+};
+
+// PDF Content Viewer Component
+const PDFContentViewer = ({ 
+  item, 
+  isExpanded, 
+  onToggleView, 
+  onDownload, 
+  getPDFViewUrl 
+}: {
+  item: any;
+  isExpanded: boolean;
+  onToggleView: () => void;
+  onDownload: () => void;
+  getPDFViewUrl: (fileName: string, bucketName: string) => Promise<string | null>;
+}) => {
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleViewPDF = async () => {
+    if (!isExpanded && !pdfUrl) {
+      setLoading(true);
+      const url = await getPDFViewUrl(item.metadata.fileName, item.metadata.bucketName || 'content-pdfs');
+      setPdfUrl(url);
+      setLoading(false);
+    }
+    onToggleView();
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">PDF Learning Material</p>
+      
+      <div className="flex gap-2">
+        <Button 
+          variant="default" 
+          onClick={handleViewPDF}
+          disabled={loading}
+          className="flex items-center gap-2"
+        >
+          {loading ? (
+            <>Loading...</>
+          ) : isExpanded ? (
+            <>
+              <EyeOff className="h-4 w-4" />
+              Hide PDF
+            </>
+          ) : (
+            <>
+              <Eye className="h-4 w-4" />
+              View PDF
+            </>
+          )}
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          onClick={onDownload}
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          Download
+        </Button>
+      </div>
+
+      {isExpanded && pdfUrl && (
+        <div className="mt-4 border rounded-lg overflow-hidden">
+          <iframe
+            src={pdfUrl}
+            className="w-full h-[600px]"
+            title={`PDF Viewer - ${item.title}`}
+            style={{ border: 'none' }}
+          />
+        </div>
+      )}
     </div>
   );
 };
