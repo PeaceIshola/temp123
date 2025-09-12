@@ -62,10 +62,12 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
 
   const createContentRecord = async (fileName: string, uploadMetadata: { subjectId?: string; subSubjectId?: string; topicId?: string; subject?: string; area?: string; topic?: string }) => {
     try {
+      console.log('Creating content record with metadata:', uploadMetadata);
       let topicId = uploadMetadata.topicId;
       
       // If we have a topicId, use it directly
       if (!topicId && uploadMetadata.subject && uploadMetadata.area && uploadMetadata.topic) {
+        console.log('No topicId provided, creating from subject/area/topic');
         // Fallback to old method - find or create topic
         const { data: subjects } = await supabase
           .from('subjects')
@@ -73,7 +75,10 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
           .eq('code', uploadMetadata.subject?.toUpperCase())
           .single();
 
-        if (!subjects) return;
+        if (!subjects) {
+          console.error('Subject not found:', uploadMetadata.subject);
+          return;
+        }
 
         const { data: subSubjects } = await supabase
           .from('sub_subjects')
@@ -82,7 +87,10 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
           .eq('name', uploadMetadata.area)
           .single();
 
-        if (!subSubjects) return;
+        if (!subSubjects) {
+          console.error('Sub-subject not found:', uploadMetadata.area);
+          return;
+        }
 
         const { data: existingTopic } = await supabase
           .from('topics')
@@ -112,8 +120,9 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
       }
 
       if (topicId) {
+        console.log('Creating content record for topicId:', topicId);
         // Create content record
-        await supabase
+        const { data: contentData, error: contentError } = await supabase
           .from('content')
           .insert({
             topic_id: topicId,
@@ -127,7 +136,16 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
               bucketName,
               ...uploadMetadata
             }
-          });
+          })
+          .select();
+
+        if (contentError) {
+          console.error('Error creating content record:', contentError);
+        } else {
+          console.log('Content record created successfully:', contentData);
+        }
+      } else {
+        console.error('No topicId available for content creation');
       }
     } catch (error) {
       console.error('Error creating content record:', error);
