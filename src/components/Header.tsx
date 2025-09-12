@@ -29,13 +29,17 @@ const Header = () => {
       return;
     }
 
-    const { data } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('user_id', user.id)
-      .single();
-
-    setIsTeacher(data?.role === 'teacher');
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+      setIsTeacher(data?.role === 'teacher');
+    } catch (err) {
+      console.error('Header role check failed:', err);
+      setIsTeacher(false);
+    }
   };
 
   const handleSignOut = async () => {

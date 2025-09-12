@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,9 @@ const PDFUpload = ({ bucketName, title, description, icon }: PDFUploadProps) => 
   const [title_, setTitle_] = useState("");
 
   // Fetch existing files on component mount
-  useState(() => {
+  useEffect(() => {
     fetchFiles();
-  });
+  }, []);
 
   const fetchFiles = async () => {
     try {
