@@ -123,10 +123,12 @@ const Header = () => {
                   <User className="h-4 w-4 mr-2" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/subscriptions")}>
-                  <Crown className="h-4 w-4 mr-2" />
-                  Subscriptions
-                </DropdownMenuItem>
+                {!isTeacher && (
+                  <DropdownMenuItem onClick={() => navigate("/subscriptions")}>
+                    <Crown className="h-4 w-4 mr-2" />
+                    Subscriptions
+                  </DropdownMenuItem>
+                )}
                 {isTeacher && (
                   <DropdownMenuItem onClick={() => navigate("/teacher")}>
                     <BookOpen className="h-4 w-4 mr-2" />
