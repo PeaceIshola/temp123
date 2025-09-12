@@ -64,11 +64,11 @@ export function SubscriptionCard({ subject }: SubscriptionCardProps) {
           <ul className="space-y-2 mb-4">
             <li className="flex items-center text-sm">
               <Check className="h-4 w-4 text-green-500 mr-2" />
-              Basic educational resources
+              Subject modules
             </li>
             <li className="flex items-center text-sm">
               <Check className="h-4 w-4 text-green-500 mr-2" />
-              Access to quizzes
+              Basic practice questions
             </li>
             <li className="flex items-center text-sm">
               <Check className="h-4 w-4 text-green-500 mr-2" />
