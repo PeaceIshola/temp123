@@ -118,7 +118,7 @@ const SubjectExplorer = () => {
       .eq('is_published', true)
       .neq('content_type', 'experiment')
       .in('topic_id', (topicsData || []).map(t => t.id))
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: true });
 
     setContent(contentData || []);
   };
