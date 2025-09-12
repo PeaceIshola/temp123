@@ -32,6 +32,7 @@ interface Content {
   content: string;
   content_type: string;
   created_at: string;
+  metadata: any; // Use any for JSON type from Supabase
   topic: {
     title: string;
     sub_subject: {
@@ -121,6 +122,28 @@ const SubjectExplorer = () => {
     setContent(contentData || []);
   };
 
+  const downloadFile = async (fileName: string, bucketName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .download(fileName);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error: any) {
+      console.error('Download error:', error);
+    }
+  };
+
   const getContentIcon = (contentType: string) => {
     switch (contentType) {
       case 'video':
@@ -129,6 +152,8 @@ const SubjectExplorer = () => {
         return ClipboardList;
       case 'exercise':
         return ClipboardList;
+      case 'pdf':
+        return FileText;
       default:
         return FileText;
     }
@@ -142,6 +167,8 @@ const SubjectExplorer = () => {
         return 'bg-yellow-100 text-yellow-800';
       case 'exercise':
         return 'bg-green-100 text-green-800';
+      case 'pdf':
+        return 'bg-purple-100 text-purple-800';
       default:
         return 'bg-blue-100 text-blue-800';
     }
@@ -269,7 +296,21 @@ const SubjectExplorer = () => {
                             <div className="text-sm text-muted-foreground mb-3">
                               {new Date(item.created_at).toLocaleDateString()}
                             </div>
-                            <div className="whitespace-pre-wrap">{item.content}</div>
+                            {item.content_type === 'pdf' && item.metadata?.fileName ? (
+                              <div className="space-y-3">
+                                <p className="text-sm text-muted-foreground">PDF Learning Material</p>
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => downloadFile(item.metadata.fileName, item.metadata.bucketName || 'content-pdfs')}
+                                  className="flex items-center gap-2"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  Download PDF
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="whitespace-pre-wrap">{item.content}</div>
+                            )}
                           </div>
                         </CardContent>
                       </Card>
