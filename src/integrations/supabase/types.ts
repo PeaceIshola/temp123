@@ -588,6 +588,17 @@ export type Database = {
           role: string
         }[]
       }
+      get_student_display_info: {
+        Args: { p_user_id: string }
+        Returns: {
+          anonymized_email: string
+          full_name: string
+          grade_level: number
+          id: string
+          role: string
+          school_name: string
+        }[]
+      }
       get_student_list_for_teacher: {
         Args: Record<PropertyKey, never>
         Returns: {
