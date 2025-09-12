@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, Trash2, Download } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Upload, FileText, Download, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface PDFFile {
@@ -48,13 +47,89 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
         .from(bucketName)
         .list('', {
           limit: 100,
-          offset: 0,
+          offset: 0
         });
 
       if (error) throw error;
       setFiles(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching files:', error);
+    }
+  };
+
+  const createContentRecord = async (fileName: string, uploadMetadata: { subject?: string; area?: string; topic?: string }) => {
+    try {
+      // First, get the subject ID
+      const { data: subjects } = await supabase
+        .from('subjects')
+        .select('id')
+        .eq('code', uploadMetadata.subject?.toUpperCase())
+        .single();
+
+      if (!subjects) return;
+
+      // Get the sub-subject (area) ID
+      const { data: subSubjects } = await supabase
+        .from('sub_subjects')
+        .select('id')
+        .eq('subject_id', subjects.id)
+        .eq('name', uploadMetadata.area)
+        .single();
+
+      if (!subSubjects) return;
+
+      // Get or create the topic
+      let topicId;
+      const { data: existingTopic } = await supabase
+        .from('topics')
+        .select('id')
+        .eq('sub_subject_id', subSubjects.id)
+        .eq('title', uploadMetadata.topic)
+        .single();
+
+      if (existingTopic) {
+        topicId = existingTopic.id;
+      } else {
+        // Create new topic
+        const { data: newTopic } = await supabase
+          .from('topics')
+          .insert({
+            sub_subject_id: subSubjects.id,
+            title: uploadMetadata.topic,
+            description: `Learning materials for ${uploadMetadata.topic}`,
+            content: ''
+          })
+          .select('id')
+          .single();
+        
+        if (newTopic) {
+          topicId = newTopic.id;
+        }
+      }
+
+      if (topicId) {
+        // Create content record
+        await supabase
+          .from('content')
+          .insert({
+            topic_id: topicId,
+            title: title_,
+            content: `PDF file: ${fileName}`,
+            content_type: 'pdf',
+            is_published: true,
+            created_by: (await supabase.auth.getUser()).data.user?.id,
+            metadata: {
+              fileName,
+              bucketName,
+              subject: uploadMetadata.subject,
+              area: uploadMetadata.area,
+              topic: uploadMetadata.topic
+            }
+          });
+      }
+    } catch (error) {
+      console.error('Error creating content record:', error);
+      // Don't throw error here - file upload was successful
     }
   };
 
@@ -106,10 +181,16 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
         .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          metadata: metadata || {}
         });
 
       if (error) throw error;
+
+      // If metadata is provided, also create a content record in the database
+      if (metadata && metadata.subject && metadata.area && metadata.topic) {
+        await createContentRecord(fileName, metadata);
+      }
 
       toast({
         title: "Success!",
@@ -170,6 +251,13 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
 
       if (error) throw error;
 
+      // Also delete content record if it exists
+      await supabase
+        .from('content')
+        .delete()
+        .eq('content_type', 'pdf')
+        .like('content', `%${fileName}%`);
+
       toast({
         title: "Success!",
         description: "PDF deleted successfully",
@@ -191,6 +279,11 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
     return `${mb.toFixed(1)} MB`;
   };
 
+  const formatFileName = (fileName: string) => {
+    // Remove timestamp prefix for display
+    return fileName.replace(/^\d+-/, '').replace(/\.pdf$/, '');
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -199,74 +292,57 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
             {icon}
             {title}
           </CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription>
+            {description}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">PDF Title</Label>
-              <Input
-                id="title"
-                value={title_}
-                onChange={(e) => setTitle_(e.target.value)}
-                placeholder="Enter title for the PDF"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Upload PDF File</Label>
-              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground/50 mb-4" />
-                <p className="text-sm text-muted-foreground mb-4">
-                  Select a PDF file to upload (max 10MB)
-                </p>
-                <Button 
-                  onClick={handleFileSelect} 
-                  disabled={loading || !title_.trim()}
-                  variant="outline"
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {loading ? "Uploading..." : "Choose PDF File"}
-                </Button>
-              </div>
-            </div>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="pdf-title">PDF Title</Label>
+            <Input
+              id="pdf-title"
+              type="text"
+              placeholder="Enter a descriptive title for your PDF"
+              value={title_}
+              onChange={(e) => setTitle_(e.target.value)}
+            />
           </div>
+          
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf"
+            onChange={handleFileUpload}
+            style={{ display: 'none' }}
+          />
+          
+          <Button 
+            onClick={handleFileSelect}
+            disabled={loading || !title_.trim()}
+            className="w-full"
+          >
+            {loading ? "Uploading..." : "Choose PDF File"}
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Existing Files */}
       {files.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Uploaded PDFs ({files.length})</CardTitle>
-            <CardDescription>
-              Manage your uploaded PDF files
-            </CardDescription>
+            <CardTitle>Uploaded Files</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {files.map((file) => (
-                <div key={file.name} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <h4 className="font-medium">{file.name}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline">
-                        PDF
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {formatFileSize(file.metadata?.size)}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
+                <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">{formatFileName(file.name)}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatFileSize(file.metadata?.size)} • 
                         {new Date(file.created_at).toLocaleDateString()}
-                      </span>
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -287,12 +363,15 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete PDF</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Are you sure you want to delete "{file.name}"? This action cannot be undone.
+                            Are you sure you want to delete this PDF? This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteFile(file.name)}>
+                          <AlertDialogAction
+                            onClick={() => deleteFile(file.name)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>
