@@ -96,11 +96,99 @@ const SubscriptionsPage = () => {
             </Card>
           </div>
 
-          {/* Subject Subscriptions */}
-          <div className="grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {subjects.map((subject) => (
-              <SubscriptionCard key={subject.id} subject={subject} />
-            ))}
+          {/* Subscription Plans */}
+          <div className="grid lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Access Card */}
+            <Card className="border-border transition-all duration-300 hover:shadow-lg">
+              <CardHeader className="text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <Crown className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <CardTitle className="text-2xl">Free Access</CardTitle>
+                <CardDescription className="text-base">
+                  Access all subject modules at no cost
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <span className="text-4xl font-bold">Free</span>
+                  <span className="text-muted-foreground">/forever</span>
+                </div>
+                
+                <ul className="space-y-3">
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    All subject modules
+                  </li>
+                  {subjects.map((subject) => (
+                    <li key={subject.id} className="flex items-center text-sm ml-7">
+                      <span className="w-2 h-2 rounded-full bg-primary mr-3"></span>
+                      {subject.name}
+                    </li>
+                  ))}
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Basic practice questions
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Study materials
+                  </li>
+                </ul>
+
+                <button className="w-full px-6 py-3 bg-secondary text-secondary-foreground rounded-lg font-medium hover:bg-secondary/90 transition-colors">
+                  Get Started Free
+                </button>
+              </CardContent>
+            </Card>
+
+            {/* Premium Card */}
+            <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-primary/10 transition-all duration-300 hover:shadow-lg">
+              <CardHeader className="text-center">
+                <div className="flex items-center justify-center mb-4">
+                  <Crown className="h-12 w-12 text-primary" />
+                </div>
+                <CardTitle className="text-2xl">Premium Access</CardTitle>
+                <CardDescription className="text-base">
+                  Enhanced learning with advanced features
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-6">
+                <div className="text-center">
+                  <span className="text-4xl font-bold">₦5,000</span>
+                  <span className="text-muted-foreground">/year</span>
+                </div>
+                
+                <ul className="space-y-3">
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Everything in Free plan
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Advanced practice questions
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Detailed solution explanations
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Progress tracking & analytics
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Crown className="h-4 w-4 text-green-500 mr-3" />
+                    Priority support
+                  </li>
+                </ul>
+
+                <button className="w-full px-6 py-3 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors">
+                  Upgrade to Premium
+                </button>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Additional Info */}
@@ -108,12 +196,12 @@ const SubscriptionsPage = () => {
             <Card className="max-w-2xl mx-auto">
               <CardContent className="pt-6">
                 <p className="text-muted-foreground mb-4">
-                  <strong>Note:</strong> All subscriptions are per subject and provide access to 
-                  enhanced learning materials specifically for that subject area.
+                  <strong>Note:</strong> Free access provides full access to all subject modules and 
+                  basic practice questions for JSS curriculum.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Free access includes basic features. Premium subscriptions unlock advanced 
-                  practice questions, detailed explanations, and progress tracking.
+                  Premium subscription unlocks advanced practice questions, detailed explanations, 
+                  progress tracking, and priority support across all subjects.
                 </p>
               </CardContent>
             </Card>
