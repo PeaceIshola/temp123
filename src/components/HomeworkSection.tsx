@@ -41,10 +41,7 @@ const HomeworkSection = () => {
 
   const handleViewAllTools = () => {
     if (user) {
-      toast({
-        title: "Coming Soon!",
-        description: "Additional homework tools will be available soon.",
-      });
+      navigate("/resources");
     } else {
       navigate("/auth");
     }
@@ -174,8 +171,8 @@ const HomeworkSection = () => {
         </div>
 
         <div className="text-center">
-          <Button variant="outline" size="lg" onClick={handleViewAllTools}>
-            View All Homework Help Tools
+          <Button variant="outline" size="lg" onClick={() => navigate("/resources")}>
+            Access Study Resources
           </Button>
         </div>
       </div>

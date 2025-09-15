@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FlashcardButton } from "@/components/FlashcardButton";
 import { ArrowLeft, BookOpen, FileText, Video, ClipboardList, Download, Eye, EyeOff } from "lucide-react";
 
 interface Subject {
@@ -332,14 +331,6 @@ const SubjectExplorer = () => {
                             ) : (
                               <div className="whitespace-pre-wrap">{item.content}</div>
                             )}
-                            
-                            <div className="mt-4 pt-4 border-t">
-                              <FlashcardButton 
-                                contentId={item.id} 
-                                contentTitle={item.title}
-                                className="w-full sm:w-auto"
-                              />
-                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -416,12 +407,6 @@ const PDFContentViewer = ({
           <Download className="h-4 w-4" />
           Download
         </Button>
-        
-        <FlashcardButton 
-          contentId={item.id} 
-          contentTitle={item.title}
-          className="flex-1 sm:flex-initial"
-        />
       </div>
 
       {isExpanded && pdfUrl && (
