@@ -61,6 +61,75 @@ export type Database = {
           },
         ]
       }
+      flashcard_progress: {
+        Row: {
+          correct_count: number | null
+          created_at: string
+          flashcard_id: string
+          id: string
+          incorrect_count: number | null
+          last_studied_at: string | null
+          mastery_level: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          correct_count?: number | null
+          created_at?: string
+          flashcard_id: string
+          id?: string
+          incorrect_count?: number | null
+          last_studied_at?: string | null
+          mastery_level?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          correct_count?: number | null
+          created_at?: string
+          flashcard_id?: string
+          id?: string
+          incorrect_count?: number | null
+          last_studied_at?: string | null
+          mastery_level?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      flashcards: {
+        Row: {
+          answer: string
+          content_id: string
+          created_at: string
+          created_by: string | null
+          difficulty_level: number | null
+          id: string
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          content_id: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          id?: string
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          content_id?: string
+          created_at?: string
+          created_by?: string | null
+          difficulty_level?: number | null
+          id?: string
+          question?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forum_answers: {
         Row: {
           answer_text: string

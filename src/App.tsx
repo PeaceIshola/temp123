@@ -11,6 +11,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import SubjectExplorer from "./pages/SubjectExplorer";
 import Quizzes from "./pages/Quizzes";
 import TakeQuiz from "./pages/TakeQuiz";
+import Flashcards from "./pages/Flashcards";
 import Resources from "./pages/Resources";
 import Subscriptions from "./pages/Subscriptions";
 import SolutionBank from "./pages/SolutionBank";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/teacher" element={<TeacherDashboard />} />
             <Route path="/quizzes" element={<Quizzes />} />
             <Route path="/quiz/:quizId" element={<TakeQuiz />} />
+            <Route path="/flashcards/:contentId" element={<Flashcards />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/subscriptions" element={<Subscriptions />} />
             <Route path="/solution-bank" element={<SolutionBank />} />
