@@ -8,6 +8,7 @@ import ContentUploadForm from "@/components/teacher/ContentUploadForm";
 import QuizCreateForm from "@/components/teacher/QuizCreateForm";
 import QuizManagement from "@/components/teacher/QuizManagement";
 import SolutionsForm from "@/components/teacher/SolutionsForm";
+import { FlashcardAutoGenerator } from "@/components/teacher/FlashcardAutoGenerator";
 
 
 const TeacherDashboard = () => {
@@ -81,8 +82,9 @@ const TeacherDashboard = () => {
         </div>
 
         <Tabs defaultValue="content" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="content">Upload Content</TabsTrigger>
+            <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
             <TabsTrigger value="quiz">Create Quiz</TabsTrigger>
             <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>
             <TabsTrigger value="solutions">Solutions</TabsTrigger>
@@ -90,6 +92,10 @@ const TeacherDashboard = () => {
           
           <TabsContent value="content" className="space-y-4">
             <ContentUploadForm />
+          </TabsContent>
+          
+          <TabsContent value="flashcards" className="space-y-4">
+            <FlashcardAutoGenerator />
           </TabsContent>
           
           <TabsContent value="quiz" className="space-y-4">

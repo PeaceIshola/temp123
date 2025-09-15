@@ -214,7 +214,7 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
 
       toast({
         title: "Success!",
-        description: "PDF uploaded successfully",
+        description: "PDF uploaded successfully! Flashcards will be automatically generated for student study.",
       });
 
       // Reset form

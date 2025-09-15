@@ -724,6 +724,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      generate_missing_flashcards: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          content_id: string
+          flashcards_created: number
+          title: string
+        }[]
+      }
       get_anonymized_email: {
         Args: { email: string }
         Returns: string
