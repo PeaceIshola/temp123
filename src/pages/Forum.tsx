@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { ForumSecurityInfo } from "@/components/ForumSecurityInfo";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -35,20 +36,23 @@ interface ForumQuestion {
   difficulty_level: string;
   is_answered: boolean;
   created_at: string;
-  user_id: string;
   tags: string[];
+  posted_by: string;
+  anonymous_id: string;
+  is_own_question: boolean;
   answers?: ForumAnswer[];
 }
 
 interface ForumAnswer {
   id: string;
   question_id: string;
-  user_id: string;
   answer_text: string;
   is_accepted: boolean;
   votes: number;
   created_at: string;
-  updated_at: string;
+  posted_by: string;
+  anonymous_id: string;
+  is_own_answer: boolean;
   replies?: ForumAnswer[];
 }
 
@@ -79,21 +83,17 @@ const Forum = () => {
 
   const fetchQuestions = async () => {
     try {
+      // Use the secure function to get anonymized questions
       const { data: questionsData, error: questionsError } = await supabase
-        .from('forum_questions')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .rpc('get_public_forum_questions');
 
       if (questionsError) throw questionsError;
 
-      // Fetch answers for each question
+      // Fetch answers for each question using the secure function
       const questionsWithAnswers = await Promise.all(
         (questionsData || []).map(async (question) => {
           const { data: answersData, error: answersError } = await supabase
-            .from('forum_answers')
-            .select('*')
-            .eq('question_id', question.id)
-            .order('created_at', { ascending: true });
+            .rpc('get_public_forum_answers', { p_question_id: question.id });
 
           if (answersError) {
             console.error('Error fetching answers:', answersError);
@@ -247,6 +247,8 @@ const Forum = () => {
             </Button>
           </div>
 
+          <ForumSecurityInfo />
+
           {showForm && (
             <Card className="bg-gradient-card border shadow-card">
               <CardHeader>
@@ -362,7 +364,7 @@ const Forum = () => {
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
                               <User className="h-4 w-4" />
-                              Student
+                              {question.is_own_question ? "You" : question.anonymous_id}
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
@@ -442,10 +444,10 @@ const Forum = () => {
                                     <p className="text-foreground">{answer.answer_text}</p>
                                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                                       <div className="flex items-center gap-3">
-                                        <span className="flex items-center gap-1">
-                                          <User className="h-3 w-3" />
-                                          Student
-                                        </span>
+                                         <span className="flex items-center gap-1">
+                                           <User className="h-3 w-3" />
+                                           {answer.is_own_answer ? "You" : answer.anonymous_id}
+                                         </span>
                                         <span className="flex items-center gap-1">
                                           <Clock className="h-3 w-3" />
                                           {new Date(answer.created_at).toLocaleDateString()}
