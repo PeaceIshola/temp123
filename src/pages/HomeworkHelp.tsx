@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import StudentHomeworkTracker from "@/components/student/StudentHomeworkTracker";
 
 const HomeworkHelp = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -285,6 +286,13 @@ const HomeworkHelp = () => {
               </Card>
             </div>
           </div>
+
+          {/* Student's Previous Questions and Responses */}
+          {user && (
+            <div className="mt-12">
+              <StudentHomeworkTracker />
+            </div>
+          )}
         </div>
       </main>
       <Footer />
