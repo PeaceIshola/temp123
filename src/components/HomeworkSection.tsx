@@ -66,6 +66,9 @@ const HomeworkSection = () => {
       case "Step-by-Step Solutions":
         handleStepByStepHelp();
         break;
+      case "Quick Help":
+        navigate("/quick-help");
+        break;
       default:
         if (user) {
           navigate("/resources");
