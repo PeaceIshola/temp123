@@ -716,6 +716,14 @@ export type Database = {
         Args: { p_subject_id: string }
         Returns: string
       }
+      generate_auto_flashcards: {
+        Args: {
+          p_content_id: string
+          p_content_title: string
+          p_content_type: string
+        }
+        Returns: undefined
+      }
       get_anonymized_email: {
         Args: { email: string }
         Returns: string
