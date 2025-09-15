@@ -249,8 +249,11 @@ export type Database = {
           difficulty_level: string | null
           id: string
           question_text: string
+          responded_at: string | null
           status: string
           subject_code: string
+          teacher_id: string | null
+          teacher_response: string | null
           updated_at: string
           user_id: string
         }
@@ -259,8 +262,11 @@ export type Database = {
           difficulty_level?: string | null
           id?: string
           question_text: string
+          responded_at?: string | null
           status?: string
           subject_code: string
+          teacher_id?: string | null
+          teacher_response?: string | null
           updated_at?: string
           user_id: string
         }
@@ -269,8 +275,11 @@ export type Database = {
           difficulty_level?: string | null
           id?: string
           question_text?: string
+          responded_at?: string | null
           status?: string
           subject_code?: string
+          teacher_id?: string | null
+          teacher_response?: string | null
           updated_at?: string
           user_id?: string
         }

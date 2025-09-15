@@ -18,6 +18,7 @@ import SolutionBank from "./pages/SolutionBank";
 import Settings from "./pages/Settings";
 import Forum from "./pages/Forum";
 import HomeworkHelp from "./pages/HomeworkHelp";
+import StudentDashboard from "./pages/StudentDashboard";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/forum" element={<Forum />} />
             <Route path="/homework-help" element={<HomeworkHelp />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/explore/:subjectCode" element={<SubjectExplorer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

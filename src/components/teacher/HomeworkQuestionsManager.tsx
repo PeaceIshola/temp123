@@ -3,10 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { HelpCircle, Clock, CheckCircle, MessageSquare } from "lucide-react";
+import { HelpCircle, Clock, CheckCircle, MessageSquare, Send, User, Calendar } from "lucide-react";
 
 interface HomeworkQuestion {
   id: string;
@@ -16,6 +17,9 @@ interface HomeworkQuestion {
   status: string;
   created_at: string;
   user_id: string;
+  teacher_response: string | null;
+  teacher_id: string | null;
+  responded_at: string | null;
 }
 
 const HomeworkQuestionsManager = () => {
@@ -23,7 +27,9 @@ const HomeworkQuestionsManager = () => {
   const [loading, setLoading] = useState(true);
   const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
   const [response, setResponse] = useState("");
+  const [isSubmittingResponse, setIsSubmittingResponse] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const subjects = [
     { code: "BST", name: "Basic Science & Technology", color: "#3B82F6" },
@@ -95,7 +101,7 @@ const HomeworkQuestionsManager = () => {
 
       toast({
         title: "Status Updated",
-        description: `Question marked as ${newStatus}.`,
+        description: `Question marked as ${newStatus.replace('_', ' ')}.`,
       });
     } catch (error) {
       console.error('Error updating status:', error);
@@ -104,6 +110,59 @@ const HomeworkQuestionsManager = () => {
         description: "Failed to update question status.",
         variant: "destructive"
       });
+    }
+  };
+
+  const submitResponse = async (questionId: string) => {
+    if (!response.trim()) {
+      toast({
+        title: "Missing Response",
+        description: "Please write a response before submitting.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmittingResponse(true);
+    try {
+      const { error } = await supabase
+        .from('homework_help_questions')
+        .update({ 
+          teacher_response: response.trim(),
+          teacher_id: user?.id,
+          responded_at: new Date().toISOString(),
+          status: 'answered'
+        })
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      setQuestions(prev => 
+        prev.map(q => q.id === questionId ? { 
+          ...q, 
+          teacher_response: response.trim(),
+          teacher_id: user?.id || null,
+          responded_at: new Date().toISOString(),
+          status: 'answered'
+        } : q)
+      );
+
+      setResponse("");
+      setSelectedQuestion(null);
+
+      toast({
+        title: "Response Sent",
+        description: "Your detailed explanation has been sent to the student.",
+      });
+    } catch (error) {
+      console.error('Error submitting response:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit response. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmittingResponse(false);
     }
   };
 
@@ -151,17 +210,37 @@ const HomeworkQuestionsManager = () => {
                           </Badge>
                         )}
                         <Badge className={getStatusColor(question.status)}>
-                          {question.status}
+                          {question.status.charAt(0).toUpperCase() + question.status.slice(1).replace('_', ' ')}
                         </Badge>
                       </div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
                         {new Date(question.created_at).toLocaleDateString()}
                       </div>
                     </div>
                     
-                    <p className="text-foreground mb-4 leading-relaxed">
-                      {question.question_text}
-                    </p>
+                    <div className="mb-4">
+                      <h4 className="font-medium text-sm text-muted-foreground mb-2">Student Question:</h4>
+                      <p className="text-foreground leading-relaxed bg-muted/30 p-3 rounded-lg">
+                        {question.question_text}
+                      </p>
+                    </div>
+
+                    {question.teacher_response && (
+                      <div className="mb-4 border-t pt-4">
+                        <h4 className="font-medium text-sm text-primary mb-2">Your Response:</h4>
+                        <div className="bg-primary/5 border border-primary/20 p-3 rounded-lg">
+                          <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                            {question.teacher_response}
+                          </p>
+                        </div>
+                        {question.responded_at && (
+                          <div className="text-xs text-muted-foreground mt-2">
+                            Responded on {new Date(question.responded_at).toLocaleDateString()} at {new Date(question.responded_at).toLocaleTimeString()}
+                          </div>
+                        )}
+                      </div>
+                    )}
                     
                     <div className="flex gap-2">
                       {question.status === 'pending' && (
@@ -173,15 +252,72 @@ const HomeworkQuestionsManager = () => {
                           Start Working
                         </Button>
                       )}
-                      {question.status === 'in_progress' && (
-                        <Button
-                          size="sm"
-                          onClick={() => updateQuestionStatus(question.id, 'answered')}
-                        >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Mark Answered
-                        </Button>
+                      
+                      {(question.status === 'in_progress' || question.status === 'answered') && (
+                        <Dialog open={selectedQuestion === question.id} onOpenChange={(open) => {
+                          if (!open) {
+                            setSelectedQuestion(null);
+                            setResponse("");
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant={question.teacher_response ? "outline" : "default"}
+                              onClick={() => {
+                                setSelectedQuestion(question.id);
+                                setResponse(question.teacher_response || "");
+                              }}
+                            >
+                              <MessageSquare className="h-4 w-4 mr-1" />
+                              {question.teacher_response ? "Edit Response" : "Write Response"}
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl">
+                            <DialogHeader>
+                              <DialogTitle>Provide Step-by-Step Explanation</DialogTitle>
+                              <DialogDescription>
+                                Write a detailed explanation to help the student understand the concept.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="bg-muted/30 p-3 rounded-lg">
+                                <h4 className="font-medium text-sm mb-2">Student's Question:</h4>
+                                <p className="text-sm">{question.question_text}</p>
+                              </div>
+                              <div>
+                                <label className="text-sm font-medium mb-2 block">Your Detailed Explanation:</label>
+                                <Textarea
+                                  placeholder="Provide a step-by-step explanation that helps the student understand the concept. Be clear and detailed in your response..."
+                                  value={response}
+                                  onChange={(e) => setResponse(e.target.value)}
+                                  rows={8}
+                                  className="resize-none"
+                                />
+                              </div>
+                              <div className="flex justify-end gap-2">
+                                <Button 
+                                  variant="outline" 
+                                  onClick={() => {
+                                    setSelectedQuestion(null);
+                                    setResponse("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                                <Button 
+                                  onClick={() => submitResponse(question.id)}
+                                  disabled={isSubmittingResponse || !response.trim()}
+                                >
+                                  <Send className="h-4 w-4 mr-1" />
+                                  {isSubmittingResponse ? "Sending..." : "Send Response"}
+                                </Button>
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       )}
+                      
                       {question.status === 'answered' && (
                         <Button
                           size="sm"
