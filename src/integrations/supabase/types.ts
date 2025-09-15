@@ -751,39 +751,7 @@ export type Database = {
       }
     }
     Views: {
-      safe_profiles: {
-        Row: {
-          created_at: string | null
-          display_name: string | null
-          grade_level: number | null
-          id: string | null
-          role: string | null
-          school_name: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          display_name?: never
-          grade_level?: number | null
-          id?: string | null
-          role?: string | null
-          school_name?: never
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          display_name?: never
-          grade_level?: number | null
-          id?: string | null
-          role?: string | null
-          school_name?: never
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_subscription_status: {
@@ -881,6 +849,16 @@ export type Database = {
           question_text: string
           question_type: string
           topic_id: string
+        }[]
+      }
+      get_safe_profile_display: {
+        Args: { target_user_id: string }
+        Returns: {
+          display_name: string
+          grade_level: number
+          id: string
+          role: string
+          school_name: string
         }[]
       }
       get_safe_user_display: {
