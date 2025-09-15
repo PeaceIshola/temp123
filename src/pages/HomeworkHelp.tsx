@@ -1,31 +1,17 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   BookOpen, 
-  HelpCircle, 
-  CheckCircle, 
-  ArrowRight,
-  Search
+  Search,
+  MessageSquare
 } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StudentHomeworkTracker from "@/components/student/StudentHomeworkTracker";
 
 const HomeworkHelp = () => {
-  const [selectedSubject, setSelectedSubject] = useState("");
-  const [questionText, setQuestionText] = useState("");
-  const [difficultyLevel, setDifficultyLevel] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { toast } = useToast();
   const { user } = useAuth();
 
   const subjects = [
@@ -33,7 +19,6 @@ const HomeworkHelp = () => {
     { code: "PVS", name: "Prevocational Studies", color: "#10B981" },
     { code: "NV", name: "National Values Education", color: "#F59E0B" }
   ];
-
 
   const exampleQuestions = [
     {
@@ -53,64 +38,6 @@ const HomeworkHelp = () => {
     }
   ];
 
-  const handleSubmitQuestion = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please sign in to submit homework questions.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (!selectedSubject || !questionText.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please select a subject and enter your question.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      console.log('Submitting question with user:', user?.id);
-      const { data, error } = await supabase
-        .from('homework_help_questions')
-        .insert({
-          user_id: user.id,
-          subject_code: selectedSubject,
-          difficulty_level: difficultyLevel || null,
-          question_text: questionText.trim()
-        })
-        .select();
-
-      console.log('Insert result:', { data, error });
-      if (error) throw error;
-
-      toast({
-        title: "Question Submitted",
-        description: "Your question has been sent to teachers for a detailed explanation.",
-      });
-
-      // Reset form
-      setQuestionText("");
-      setSelectedSubject("");
-      setDifficultyLevel("");
-    } catch (error) {
-      console.error('Error submitting question:', error);
-      toast({
-        title: "Submission Failed",
-        description: "There was an error submitting your question. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-
   const getSubjectColor = (code: string) => {
     switch (code) {
       case "BST": return "bg-primary/10 text-primary border-primary/20";
@@ -128,88 +55,45 @@ const HomeworkHelp = () => {
           {/* Hero Section */}
           <div className="text-center space-y-4 mb-12">
             <h1 className="text-3xl lg:text-4xl font-bold">
-              Get <span className="bg-gradient-hero bg-clip-text text-transparent">Step-by-Step</span> Homework Help
+              View Your <span className="bg-gradient-hero bg-clip-text text-transparent">Step-by-Step</span> Solutions
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Submit your homework questions and receive detailed, step-by-step explanations to help you understand and learn.
+              Check your homework questions and receive detailed explanations from teachers.
             </p>
-            {!user && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
-                <p className="text-yellow-800 text-sm">
-                  Please <a href="/auth" className="font-medium underline">sign in</a> to submit homework questions.
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
+              <div className="flex items-center gap-2 text-blue-800">
+                <MessageSquare className="h-4 w-4" />
+                <p className="text-sm">
+                  Want to ask a new question? Use our <a href="/forum" className="font-medium underline">Ask & Answer Forum</a>
                 </p>
               </div>
-            )}
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Question Form */}
+            {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="bg-gradient-card border shadow-card">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="h-5 w-5 text-primary" />
-                    Submit Your Homework Question
+                    <BookOpen className="h-5 w-5 text-primary" />
+                    Your Homework Solutions
                   </CardTitle>
                   <CardDescription>
-                    Select your subject and describe what you need help understanding.
+                    Track your submitted questions and view step-by-step solutions provided by teachers.
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Question Form */}
-                  <div className="space-y-4">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Subject</label>
-                        <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose subject" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subjects.map((subject) => (
-                              <SelectItem key={subject.code} value={subject.code}>
-                                {subject.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Difficulty Level</label>
-                        <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select difficulty" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Easy">Easy</SelectItem>
-                            <SelectItem value="Medium">Medium</SelectItem>
-                            <SelectItem value="Hard">Hard</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
+                <CardContent>
+                  {!user ? (
+                    <div className="text-center py-8">
+                      <p className="text-muted-foreground mb-4">Please sign in to view your homework solutions.</p>
+                      <a href="/auth" className="text-primary font-medium underline">Sign In</a>
                     </div>
-
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">What are you confused about?</label>
-                      <Textarea
-                        placeholder="Describe what you're finding difficult to understand. Be specific about which concepts or steps are unclear to you..."
-                        value={questionText}
-                        onChange={(e) => setQuestionText(e.target.value)}
-                        rows={6}
-                        className="resize-none"
-                      />
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-muted-foreground">Your homework questions and solutions will appear below.</p>
                     </div>
-
-                    <Button 
-                      onClick={handleSubmitQuestion}
-                      className="w-full"
-                      size="lg"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Submitting..." : "Get Step-by-Step Help"}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -224,7 +108,7 @@ const HomeworkHelp = () => {
                     Example Questions
                   </CardTitle>
                   <CardDescription>
-                    See how other students ask for help
+                    See how other students ask for help in the forum
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -259,8 +143,8 @@ const HomeworkHelp = () => {
                         1
                       </div>
                       <div>
-                        <p className="text-sm font-medium">Submit Question</p>
-                        <p className="text-xs text-muted-foreground">Choose your subject and describe your problem</p>
+                        <p className="text-sm font-medium">Ask in Forum</p>
+                        <p className="text-xs text-muted-foreground">Post your question in the Ask & Answer Forum</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
@@ -277,8 +161,8 @@ const HomeworkHelp = () => {
                         3
                       </div>
                       <div>
-                        <p className="text-sm font-medium">Learn & Practice</p>
-                        <p className="text-xs text-muted-foreground">Understand the concept and apply it</p>
+                        <p className="text-sm font-medium">View Here</p>
+                        <p className="text-xs text-muted-foreground">Check your solutions in this section</p>
                       </div>
                     </div>
                   </div>
