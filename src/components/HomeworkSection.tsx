@@ -149,9 +149,6 @@ const HomeworkSection = () => {
             </div>
             
             <div className="space-y-4">
-              <Button variant="hero" size="lg" className="w-full" onClick={handleAskQuestion}>
-                Ask a Question
-              </Button>
               <Button variant="outline" size="lg" className="w-full" onClick={handleBrowseSolutions}>
                 Browse Solution Bank
               </Button>
