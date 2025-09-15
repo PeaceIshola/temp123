@@ -40,10 +40,26 @@ const HomeworkSection = () => {
   };
 
   const handleViewAllTools = () => {
-    if (user) {
-      navigate("/resources");
-    } else {
-      navigate("/auth");
+    navigate("/resources");
+  };
+
+  const handleFeatureClick = (featureTitle: string) => {
+    switch (featureTitle) {
+      case "Study Resources":
+        navigate("/resources");
+        break;
+      case "Ask & Answer Forum":
+        handleAskQuestion();
+        break;
+      case "Step-by-Step Solutions":
+        handleBrowseSolutions();
+        break;
+      default:
+        if (user) {
+          navigate("/resources");
+        } else {
+          navigate("/auth");
+        }
     }
   };
 
@@ -104,12 +120,16 @@ const HomeworkSection = () => {
           <div className="space-y-8">
             <div className="grid sm:grid-cols-2 gap-6">
               {features.map((feature) => (
-                <Card key={feature.title} className="bg-gradient-card border shadow-card">
+                <Card 
+                  key={feature.title} 
+                  className="bg-gradient-card border shadow-card hover:shadow-lg transition-all cursor-pointer group"
+                  onClick={() => handleFeatureClick(feature.title)}
+                >
                   <CardContent className="p-6">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4 group-hover:bg-primary/20 transition-colors">
                       <feature.icon className="h-6 w-6 text-primary" />
                     </div>
-                    <h3 className="font-semibold mb-2">{feature.title}</h3>
+                    <h3 className="font-semibold mb-2 group-hover:text-primary transition-colors">{feature.title}</h3>
                     <p className="text-sm text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
@@ -171,8 +191,8 @@ const HomeworkSection = () => {
         </div>
 
         <div className="text-center">
-          <Button variant="outline" size="lg" onClick={() => navigate("/resources")}>
-            Access Study Resources
+          <Button variant="outline" size="lg" onClick={handleViewAllTools}>
+            Access All Study Tools
           </Button>
         </div>
       </div>
