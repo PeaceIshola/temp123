@@ -243,6 +243,39 @@ export type Database = {
         }
         Relationships: []
       }
+      homework_help_questions: {
+        Row: {
+          created_at: string
+          difficulty_level: string | null
+          id: string
+          question_text: string
+          status: string
+          subject_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty_level?: string | null
+          id?: string
+          question_text: string
+          status?: string
+          subject_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty_level?: string | null
+          id?: string
+          question_text?: string
+          status?: string
+          subject_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       homework_submissions: {
         Row: {
           attachments: Json | null

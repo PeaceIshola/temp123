@@ -7,6 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   BookOpen, 
   HelpCircle, 
@@ -21,7 +23,9 @@ const HomeworkHelp = () => {
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [difficultyLevel, setDifficultyLevel] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const subjects = [
     { code: "BST", name: "Basic Science & Technology", color: "#3B82F6" },
@@ -48,7 +52,16 @@ const HomeworkHelp = () => {
     }
   ];
 
-  const handleSubmitQuestion = () => {
+  const handleSubmitQuestion = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to submit homework questions.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (!selectedSubject || !questionText.trim()) {
       toast({
         title: "Missing Information",
@@ -58,15 +71,39 @@ const HomeworkHelp = () => {
       return;
     }
 
-    toast({
-      title: "Question Submitted",
-      description: "We'll provide a detailed step-by-step explanation shortly.",
-    });
+    setIsSubmitting(true);
 
-    // Reset form
-    setQuestionText("");
-    setSelectedSubject("");
-    setDifficultyLevel("");
+    try {
+      const { error } = await supabase
+        .from('homework_help_questions')
+        .insert({
+          user_id: user.id,
+          subject_code: selectedSubject,
+          difficulty_level: difficultyLevel || null,
+          question_text: questionText.trim()
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Question Submitted",
+        description: "Your question has been sent to teachers for a detailed explanation.",
+      });
+
+      // Reset form
+      setQuestionText("");
+      setSelectedSubject("");
+      setDifficultyLevel("");
+    } catch (error) {
+      console.error('Error submitting question:', error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your question. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
 
@@ -156,8 +193,9 @@ const HomeworkHelp = () => {
                       onClick={handleSubmitQuestion}
                       className="w-full"
                       size="lg"
+                      disabled={isSubmitting}
                     >
-                      Get Step-by-Step Help
+                      {isSubmitting ? "Submitting..." : "Get Step-by-Step Help"}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
