@@ -199,11 +199,6 @@ const HomeworkSection = () => {
           </div>
         </div>
 
-        <div className="text-center">
-          <Button variant="outline" size="lg" onClick={handleViewAllTools}>
-            Access All Study Tools
-          </Button>
-        </div>
       </div>
     </section>
   );
