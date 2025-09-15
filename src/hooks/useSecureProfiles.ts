@@ -29,6 +29,89 @@ export class SecureProfileService {
   }
 
   /**
+   * Get secure user profile with validation and logging
+   */
+  async getSecureProfile(userId?: string): Promise<any | null> {
+    try {
+      const targetUserId = userId || (await supabase.auth.getUser()).data.user?.id;
+      
+      if (!targetUserId) {
+        throw new Error('User not authenticated');
+      }
+
+      // Security validation: ensure user can only access their own profile
+      const currentUser = await supabase.auth.getUser();
+      if (currentUser.data.user?.id !== targetUserId) {
+        // Log unauthorized access attempt
+        await this.logProfileAccess(targetUserId, 'unauthorized_access_attempt');
+        throw new Error('Access denied: You can only view your own profile');
+      }
+
+      // Log successful access
+      await this.logProfileAccess(targetUserId, 'secure_profile_access');
+
+      // Fetch profile with additional security checks
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          id,
+          user_id,
+          first_name,
+          last_name,
+          username,
+          bio,
+          role,
+          grade_level,
+          school_name,
+          created_at,
+          updated_at,
+          full_name
+        `)
+        .eq('user_id', targetUserId)
+        .single();
+
+      if (error) throw error;
+
+      // Sanitize and validate returned data
+      return this.sanitizeProfileData(data);
+    } catch (error) {
+      console.error('Error in getSecureProfile:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Sanitize profile data to prevent XSS and other attacks
+   */
+  private sanitizeProfileData(data: any) {
+    if (!data) return null;
+
+    return {
+      ...data,
+      first_name: this.sanitizeString(data.first_name),
+      last_name: this.sanitizeString(data.last_name),
+      username: this.sanitizeString(data.username),
+      bio: this.sanitizeString(data.bio, 500),
+      full_name: this.sanitizeString(data.full_name)
+    };
+  }
+
+  /**
+   * Sanitize string input to prevent XSS
+   */
+  private sanitizeString(input: string | null, maxLength?: number): string | null {
+    if (!input) return null;
+    
+    // Remove potentially harmful characters and HTML
+    const sanitized = input
+      .replace(/<[^>]*>/g, '') // Remove HTML tags
+      .replace(/[<>'"&]/g, '') // Remove dangerous characters
+      .trim();
+    
+    return maxLength ? sanitized.substring(0, maxLength) : sanitized;
+  }
+
+  /**
    * Get safe user display information without exposing email
    */
   async getSafeUserDisplay(userId: string): Promise<SafeUserProfile | null> {
@@ -112,6 +195,49 @@ export class SecureProfileService {
   }
 
   /**
+   * Update profile with enhanced security validation
+   */
+  async updateSecureProfile(updates: Partial<any>): Promise<boolean> {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      // Sanitize input data
+      const sanitizedUpdates: any = {
+        first_name: this.sanitizeString(updates.first_name),
+        last_name: this.sanitizeString(updates.last_name),
+        username: this.sanitizeString(updates.username),
+        bio: this.sanitizeString(updates.bio, 500),
+        grade_level: updates.grade_level,
+        school_name: this.sanitizeString(updates.school_name)
+      };
+
+      // Construct full_name if first_name and last_name are provided
+      if (sanitizedUpdates.first_name && sanitizedUpdates.last_name) {
+        sanitizedUpdates.full_name = `${sanitizedUpdates.first_name} ${sanitizedUpdates.last_name}`;
+      }
+
+      // Log profile update attempt
+      await this.logProfileAccess(user.user.id, 'profile_update_attempt');
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(sanitizedUpdates)
+        .eq('user_id', user.user.id);
+
+      if (error) throw error;
+
+      // Log successful update
+      await this.logProfileAccess(user.user.id, 'profile_update_success');
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating secure profile:', error);
+      return false;
+    }
+  }
+
+  /**
    * Check if current user has permission to view profile
    */
   async canViewProfile(targetUserId: string): Promise<boolean> {
@@ -145,6 +271,41 @@ export class SecureProfileService {
 export function useSecureProfiles() {
   const { toast } = useToast();
   const profileService = SecureProfileService.getInstance();
+
+  const getSecureProfile = async (userId?: string) => {
+    try {
+      return await profileService.getSecureProfile(userId);
+    } catch (error: any) {
+      toast({
+        title: "Access Denied",
+        description: error.message || "Failed to access profile",
+        variant: "destructive",
+      });
+      return null;
+    }
+  };
+
+  const updateProfile = async (updates: any) => {
+    try {
+      const success = await profileService.updateSecureProfile(updates);
+      if (success) {
+        toast({
+          title: "Success",
+          description: "Profile updated successfully"
+        });
+        return true;
+      } else {
+        throw new Error('Update failed');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
 
   const getSafeUserDisplay = async (userId: string) => {
     const canView = await profileService.canViewProfile(userId);
@@ -181,6 +342,8 @@ export function useSecureProfiles() {
   };
 
   return {
+    getSecureProfile,
+    updateProfile,
     getSafeUserDisplay,
     getStudentList,
     anonymizeEmail,

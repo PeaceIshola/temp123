@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Crown, CreditCard } from "lucide-react";
+import { Loader2, User, Crown, CreditCard, Shield } from "lucide-react";
 import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { useSecureProfiles } from "@/hooks/useSecureProfiles";
 
 interface Profile {
   id: string;
@@ -23,12 +24,15 @@ interface Profile {
   email: string | null;
   full_name: string | null;
   role: string | null;
+  grade_level: number | null;
+  school_name: string | null;
 }
 
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const { subjects, subscriptions, loading: subscriptionsLoading, createSubscription } = useSubscriptions();
+  const { getSecureProfile, updateProfile } = useSecureProfiles();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -43,19 +47,21 @@ const Settings = () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
+      const secureProfileData = await getSecureProfile();
+      if (secureProfileData) {
+        // Include email from auth user for display (read-only)
+        setProfile({
+          ...secureProfileData,
+          email: user.email
+        });
+      } else {
+        throw new Error('Failed to load profile');
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast({
         title: "Error",
-        description: "Failed to load profile information",
+        description: "Failed to load profile information securely",
         variant: "destructive"
       });
     } finally {
@@ -69,32 +75,19 @@ const Settings = () => {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          username: profile.username,
-          bio: profile.bio,
-          full_name: profile.first_name && profile.last_name 
-            ? `${profile.first_name} ${profile.last_name}` 
-            : profile.full_name
-        })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully"
+      const success = await updateProfile({
+        first_name: profile.first_name,
+        last_name: profile.last_name,
+        username: profile.username,
+        bio: profile.bio,
+        grade_level: profile.grade_level,
+        school_name: profile.school_name
       });
-    } catch (error: any) {
-      console.error('Error updating profile:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update profile",
-        variant: "destructive"
-      });
+
+      if (success) {
+        // Refresh profile data after successful update
+        await fetchProfile();
+      }
     } finally {
       setSaving(false);
     }
@@ -233,20 +226,49 @@ const Settings = () => {
                         disabled
                         className="bg-muted"
                       />
-                      <p className="text-sm text-muted-foreground">
-                        Email cannot be changed here. Contact support to update your email.
-                      </p>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Shield className="h-4 w-4" />
+                        Email is protected and cannot be changed here. Contact support to update your email.
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="grade_level">Grade Level</Label>
+                        <Input
+                          id="grade_level"
+                          type="number"
+                          min="1"
+                          max="12"
+                          value={profile.grade_level || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, grade_level: parseInt(e.target.value) || null} : null)}
+                          placeholder="Enter your grade level"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="school_name">School Name</Label>
+                        <Input
+                          id="school_name"
+                          value={profile.school_name || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
+                          placeholder="Enter your school name"
+                        />
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
+                      <Label htmlFor="bio">Bio (Maximum 500 characters)</Label>
                       <Textarea
                         id="bio"
                         value={profile.bio || ''}
                         onChange={(e) => setProfile(prev => prev ? {...prev, bio: e.target.value} : null)}
                         placeholder="Tell us about yourself..."
                         rows={4}
+                        maxLength={500}
                       />
+                      <p className="text-sm text-muted-foreground">
+                        {profile.bio ? profile.bio.length : 0}/500 characters
+                      </p>
                     </div>
 
                     <div className="space-y-2">
