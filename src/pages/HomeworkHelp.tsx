@@ -12,9 +12,6 @@ import {
   HelpCircle, 
   CheckCircle, 
   ArrowRight,
-  Upload,
-  Camera,
-  Type,
   Search
 } from "lucide-react";
 import Header from "@/components/Header";
@@ -27,46 +24,26 @@ const HomeworkHelp = () => {
   const { toast } = useToast();
 
   const subjects = [
-    { code: "BST", name: "Business Studies" },
-    { code: "PVS", name: "Physical Science" },
-    { code: "NV", name: "Natural Science" }
+    { code: "BST", name: "Basic Science & Technology", color: "#3B82F6" },
+    { code: "PVS", name: "Prevocational Studies", color: "#10B981" },
+    { code: "NV", name: "National Values Education", color: "#F59E0B" }
   ];
 
-  const helpMethods = [
-    {
-      icon: Type,
-      title: "Type Your Question",
-      description: "Describe your homework problem in detail",
-      action: "type"
-    },
-    {
-      icon: Camera,
-      title: "Upload Photo",
-      description: "Take a picture of your homework question",
-      action: "photo"
-    },
-    {
-      icon: Upload,
-      title: "Upload Document",
-      description: "Upload your homework document or worksheet",
-      action: "document"
-    }
-  ];
 
   const exampleQuestions = [
     {
       subject: "BST",
-      question: "How do I calculate break-even point for a business?",
+      question: "I'm confused about how computers process data. Can you explain the basic components?",
       difficulty: "Medium"
     },
     {
       subject: "PVS",
-      question: "What's the difference between velocity and acceleration?",
+      question: "What's the difference between farming and agriculture? I need help with my assignment.",
       difficulty: "Easy"
     },
     {
       subject: "NV",
-      question: "How does photosynthesis work in plants?",
+      question: "How do citizens participate in democracy? I don't understand the different ways.",
       difficulty: "Medium"
     }
   ];
@@ -92,12 +69,6 @@ const HomeworkHelp = () => {
     setDifficultyLevel("");
   };
 
-  const handleMethodClick = (action: string) => {
-    toast({
-      title: "Feature Coming Soon",
-      description: `${action === 'photo' ? 'Photo upload' : action === 'document' ? 'Document upload' : 'Advanced input'} will be available soon.`,
-    });
-  };
 
   const getSubjectColor = (code: string) => {
     switch (code) {
@@ -133,31 +104,10 @@ const HomeworkHelp = () => {
                     Submit Your Homework Question
                   </CardTitle>
                   <CardDescription>
-                    Choose how you'd like to submit your homework question for detailed help.
+                    Select your subject and describe what you need help understanding.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Help Methods */}
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    {helpMethods.map((method) => (
-                      <Card 
-                        key={method.action}
-                        className="cursor-pointer hover:shadow-md transition-all group"
-                        onClick={() => handleMethodClick(method.action)}
-                      >
-                        <CardContent className="p-4 text-center">
-                          <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 mb-3 group-hover:bg-primary/20 transition-colors">
-                            <method.icon className="h-5 w-5 text-primary" />
-                          </div>
-                          <h3 className="font-medium text-sm mb-1">{method.title}</h3>
-                          <p className="text-xs text-muted-foreground">{method.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-
-                  <Separator />
-
                   {/* Question Form */}
                   <div className="space-y-4">
                     <div className="grid sm:grid-cols-2 gap-4">
@@ -192,9 +142,9 @@ const HomeworkHelp = () => {
                     </div>
 
                     <div>
-                      <label className="text-sm font-medium mb-2 block">Your Question</label>
+                      <label className="text-sm font-medium mb-2 block">What are you confused about?</label>
                       <Textarea
-                        placeholder="Describe your homework problem in detail. Include any specific parts you're struggling with..."
+                        placeholder="Describe what you're finding difficult to understand. Be specific about which concepts or steps are unclear to you..."
                         value={questionText}
                         onChange={(e) => setQuestionText(e.target.value)}
                         rows={6}
