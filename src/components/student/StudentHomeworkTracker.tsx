@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { MessageSquare, Clock, CheckCircle, User, Calendar } from "lucide-react";
+import { MessageSquare, Clock, CheckCircle, User, Calendar, RefreshCw } from "lucide-react";
 
 interface StudentHomeworkQuestion {
   id: string;
@@ -63,6 +64,31 @@ const StudentHomeworkTracker = () => {
   useEffect(() => {
     if (user) {
       fetchMyQuestions();
+      
+      // Set up real-time subscription for homework question updates
+      const channel = supabase
+        .channel('homework_help_updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'homework_help_questions',
+            filter: `user_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('Real-time update received:', payload);
+            // Update the specific question with new data
+            setQuestions(prev => 
+              prev.map(q => q.id === payload.new.id ? payload.new as StudentHomeworkQuestion : q)
+            );
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -115,13 +141,26 @@ const StudentHomeworkTracker = () => {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            My Homework Questions
-          </CardTitle>
-          <CardDescription>
-            Track the status of your submitted homework questions and view teacher responses.
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                My Homework Questions
+              </CardTitle>
+              <CardDescription>
+                Track the status of your submitted homework questions and view teacher responses.
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchMyQuestions}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {questions.length === 0 ? (
