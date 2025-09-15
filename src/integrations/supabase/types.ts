@@ -751,12 +751,52 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          grade_level: number | null
+          id: string | null
+          role: string | null
+          school_name: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: never
+          grade_level?: number | null
+          id?: string | null
+          role?: string | null
+          school_name?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: never
+          grade_level?: number | null
+          id?: string | null
+          role?: string | null
+          school_name?: never
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_subscription_status: {
         Args: { p_subject_id: string }
         Returns: string
+      }
+      detect_suspicious_profile_access: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          access_count: number
+          last_access: string
+          user_id: string
+        }[]
       }
       generate_auto_flashcards: {
         Args: {
