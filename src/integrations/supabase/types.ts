@@ -169,6 +169,13 @@ export type Database = {
             referencedRelation: "forum_questions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "forum_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forum_questions_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       forum_questions: {
@@ -709,7 +716,96 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      forum_answers_public: {
+        Row: {
+          anonymous_id: string | null
+          answer_text: string | null
+          created_at: string | null
+          id: string | null
+          is_accepted: boolean | null
+          is_own_answer: boolean | null
+          posted_by: string | null
+          question_id: string | null
+          votes: number | null
+        }
+        Insert: {
+          anonymous_id?: never
+          answer_text?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_accepted?: boolean | null
+          is_own_answer?: never
+          posted_by?: never
+          question_id?: string | null
+          votes?: number | null
+        }
+        Update: {
+          anonymous_id?: never
+          answer_text?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_accepted?: boolean | null
+          is_own_answer?: never
+          posted_by?: never
+          question_id?: string | null
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "forum_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forum_questions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "forum_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "forum_questions_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      forum_questions_public: {
+        Row: {
+          anonymous_id: string | null
+          created_at: string | null
+          difficulty_level: string | null
+          id: string | null
+          is_answered: boolean | null
+          posted_by: string | null
+          question_text: string | null
+          subject_code: string | null
+          tags: string[] | null
+          title: string | null
+        }
+        Insert: {
+          anonymous_id?: never
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string | null
+          is_answered?: boolean | null
+          posted_by?: never
+          question_text?: string | null
+          subject_code?: string | null
+          tags?: string[] | null
+          title?: string | null
+        }
+        Update: {
+          anonymous_id?: never
+          created_at?: string | null
+          difficulty_level?: string | null
+          id?: string | null
+          is_answered?: boolean | null
+          posted_by?: never
+          question_text?: string | null
+          subject_code?: string | null
+          tags?: string[] | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_subscription_status: {
@@ -727,6 +823,21 @@ export type Database = {
       get_platform_statistics: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      get_question_with_student_info: {
+        Args: { question_id: string }
+        Returns: {
+          created_at: string
+          difficulty_level: string
+          id: string
+          is_answered: boolean
+          question_text: string
+          student_grade: number
+          student_name: string
+          subject_code: string
+          tags: string[]
+          title: string
+        }[]
       }
       get_quiz_questions: {
         Args: { p_topic_id: string }
