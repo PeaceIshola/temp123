@@ -43,6 +43,18 @@ const HomeworkSection = () => {
     navigate("/resources");
   };
 
+  const handleStepByStepHelp = () => {
+    if (user) {
+      navigate("/homework-help");
+    } else {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to access homework help.",
+      });
+      navigate("/auth");
+    }
+  };
+
   const handleFeatureClick = (featureTitle: string) => {
     switch (featureTitle) {
       case "Study Resources":
@@ -52,7 +64,7 @@ const HomeworkSection = () => {
         handleAskQuestion();
         break;
       case "Step-by-Step Solutions":
-        handleBrowseSolutions();
+        handleStepByStepHelp();
         break;
       default:
         if (user) {
@@ -67,7 +79,7 @@ const HomeworkSection = () => {
     {
       icon: HelpCircle,
       title: "Step-by-Step Solutions",
-      description: "Get detailed explanations for common homework questions across all subjects"
+      description: "Get detailed step-by-step explanations and guidance for your homework problems"
     },
     {
       icon: Users,
