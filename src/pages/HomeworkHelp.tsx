@@ -74,15 +74,18 @@ const HomeworkHelp = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase
+      console.log('Submitting question with user:', user?.id);
+      const { data, error } = await supabase
         .from('homework_help_questions')
         .insert({
           user_id: user.id,
           subject_code: selectedSubject,
           difficulty_level: difficultyLevel || null,
           question_text: questionText.trim()
-        });
+        })
+        .select();
 
+      console.log('Insert result:', { data, error });
       if (error) throw error;
 
       toast({
@@ -129,6 +132,13 @@ const HomeworkHelp = () => {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Submit your homework questions and receive detailed, step-by-step explanations to help you understand and learn.
             </p>
+            {!user && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 max-w-md mx-auto">
+                <p className="text-yellow-800 text-sm">
+                  Please <a href="/auth" className="font-medium underline">sign in</a> to submit homework questions.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">

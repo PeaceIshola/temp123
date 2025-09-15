@@ -59,11 +59,13 @@ const HomeworkQuestionsManager = () => {
 
   const fetchQuestions = async () => {
     try {
+      console.log('Fetching homework questions...');
       const { data, error } = await supabase
         .from('homework_help_questions')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('Fetch result:', { data, error });
       if (error) throw error;
       setQuestions(data || []);
     } catch (error) {
