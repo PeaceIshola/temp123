@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import homeworkHelpImage from "@/assets/homework-help-hero.jpg";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -153,6 +154,22 @@ const HomeworkSection = () => {
               <Button variant="outline" size="lg" className="w-full" onClick={handleBrowseSolutions}>
                 Browse Solution Bank
               </Button>
+              
+              {/* Homework Help Visual */}
+              <div className="bg-gradient-card rounded-lg overflow-hidden border shadow-card">
+                <div className="relative">
+                  <img 
+                    src={homeworkHelpImage} 
+                    alt="Students collaborating on homework and learning together"
+                    className="w-full h-40 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-3 left-3 right-3">
+                    <h3 className="text-white font-semibold text-sm mb-1">Get Help with Your Studies</h3>
+                    <p className="text-white/90 text-xs">Join thousands of students getting step-by-step solutions</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
