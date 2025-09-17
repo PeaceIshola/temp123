@@ -1,4 +1,5 @@
 import { useState } from "react";
+import homeworkHelpImage from "@/assets/homework-help-hero.jpg";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
@@ -100,6 +101,21 @@ const HomeworkHelp = () => {
 
             {/* Sidebar */}
             <div className="space-y-6">
+              {/* Homework Help Visual */}
+              <Card className="bg-gradient-card border shadow-card overflow-hidden">
+                <div className="relative">
+                  <img 
+                    src={homeworkHelpImage} 
+                    alt="Students collaborating on homework and learning together"
+                    className="w-full h-48 object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <h3 className="text-white font-semibold text-lg mb-1">Get Help with Your Studies</h3>
+                    <p className="text-white/90 text-sm">Join thousands of students getting step-by-step solutions</p>
+                  </div>
+                </div>
+              </Card>
               {/* Example Questions */}
               <Card className="bg-gradient-card border shadow-card">
                 <CardHeader>
