@@ -912,6 +912,10 @@ export type Database = {
         Args: { p_answers: Json; p_topic_id: string }
         Returns: Json
       }
+      verify_profile_access: {
+        Args: { profile_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
