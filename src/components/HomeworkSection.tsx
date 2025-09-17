@@ -154,20 +154,22 @@ const HomeworkSection = () => {
               <Button variant="outline" size="lg" className="w-full" onClick={handleBrowseSolutions}>
                 Browse Solution Bank
               </Button>
-              
-              {/* Homework Help Visual */}
-              <div className="bg-gradient-card rounded-lg overflow-hidden border shadow-card">
-                <div className="relative">
-                  <img 
-                    src={homeworkHelpImage} 
-                    alt="Students collaborating on homework and learning together"
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                  <div className="absolute bottom-3 left-3 right-3">
-                    <h3 className="text-white font-semibold text-sm mb-1">Get Help with Your Studies</h3>
-                    <p className="text-white/90 text-xs">Join thousands of students getting step-by-step solutions</p>
-                  </div>
+            </div>
+          </div>
+
+          {/* Right Column - Homework Help Visual */}
+          <div className="lg:flex lg:justify-center">
+            <div className="bg-gradient-card rounded-lg overflow-hidden border shadow-card max-w-md w-full">
+              <div className="relative">
+                <img 
+                  src={homeworkHelpImage} 
+                  alt="Students collaborating on homework and learning together"
+                  className="w-full h-64 object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4">
+                  <h3 className="text-white font-semibold text-lg mb-2">Get Help with Your Studies</h3>
+                  <p className="text-white/90 text-sm">Join thousands of students getting step-by-step solutions</p>
                 </div>
               </div>
             </div>
