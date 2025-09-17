@@ -159,12 +159,12 @@ const HomeworkSection = () => {
 
           {/* Right Column - Homework Help Visual */}
           <div className="lg:flex lg:justify-center">
-            <div className="bg-gradient-card rounded-lg overflow-hidden border shadow-card max-w-md w-full">
+            <div className="bg-gradient-card rounded-lg overflow-hidden border shadow-card max-w-lg w-full">
               <div className="relative">
                 <img 
                   src={homeworkHelpImage} 
                   alt="Students collaborating on homework and learning together"
-                  className="w-full h-64 object-cover"
+                  className="w-full h-80 object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                 <div className="absolute bottom-4 left-4 right-4">
