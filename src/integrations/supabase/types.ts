@@ -1002,6 +1002,20 @@ export type Database = {
         Args: { p_answers: Json; p_topic_id: string }
         Returns: Json
       }
+      update_profile_as_admin: {
+        Args: {
+          p_bio?: string
+          p_first_name?: string
+          p_full_name?: string
+          p_grade_level?: number
+          p_last_name?: string
+          p_profile_id: string
+          p_role?: string
+          p_school_name?: string
+          p_username?: string
+        }
+        Returns: undefined
+      }
       verify_profile_access: {
         Args: { profile_user_id: string }
         Returns: boolean
