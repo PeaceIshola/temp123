@@ -150,6 +150,11 @@ const AdminDashboard = () => {
   const loadAdminData = async () => {
     setLoading(true);
     try {
+      console.log('Starting admin data load...');
+      
+      // Check current user
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('Current user:', user?.id);
       // 1) Get overview counts first
       try {
         const { data: countsData, error: countsError } = await supabase
@@ -170,8 +175,11 @@ const AdminDashboard = () => {
 
       // 2) Load all profiles with real UUIDs
       try {
+        console.log('Calling get_profiles_for_admin...');
         const { data: profilesData, error: profilesError } = await supabase
           .rpc('get_profiles_for_admin');
+
+        console.log('Profile fetch result:', { profilesData, profilesError });
 
         if (profilesError) throw profilesError;
 
