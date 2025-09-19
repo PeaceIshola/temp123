@@ -31,7 +31,8 @@ import {
   ChevronDown,
   ChevronUp,
   Shield,
-  Settings
+  Settings,
+  RefreshCw
 } from "lucide-react";
 
 interface Profile {
@@ -70,12 +71,12 @@ interface TicketStats {
 }
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
+  const { user, refreshSession } = useAuth();
   const { toast } = useToast();
   
   // State management
   const [loading, setLoading] = useState(true);
-  const [isTeacher, setIsTeacher] = useState(false);
+  const [isTeacherOrAdmin, setIsTeacherOrAdmin] = useState(false);
   const [students, setStudents] = useState<Profile[]>([]);
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -100,12 +101,12 @@ const AdminDashboard = () => {
     checkUserRole();
   }, [user]);
 
-  // Load data when teacher role is confirmed
+  // Load data when teacher/admin role is confirmed
   useEffect(() => {
-    if (isTeacher) {
+    if (isTeacherOrAdmin) {
       loadAdminData();
     }
-  }, [isTeacher]);
+  }, [isTeacherOrAdmin]);
 
   const checkUserRole = async () => {
     if (!user) {
@@ -123,7 +124,7 @@ const AdminDashboard = () => {
       if (error) throw error;
       
       const isAuthorized = profile?.role === 'teacher' || profile?.role === 'admin';
-      setIsTeacher(isAuthorized);
+      setIsTeacherOrAdmin(isAuthorized);
       
       if (!isAuthorized) {
         toast({
@@ -328,7 +329,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!user || !isTeacher) {
+  if (!user || !isTeacherOrAdmin) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -338,9 +339,30 @@ const AdminDashboard = () => {
               <CardContent className="pt-6 text-center">
                 <Shield className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                 <h2 className="text-xl font-semibold mb-2">Access Restricted</h2>
-                <p className="text-muted-foreground">
+                <p className="text-muted-foreground mb-4">
                   You need teacher or admin privileges to access the admin dashboard.
                 </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  If your role was recently changed, try refreshing your session or logging out and back in.
+                </p>
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={refreshSession}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                    Refresh Session
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => window.location.href = '/auth'}
+                  >
+                    Re-login
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
