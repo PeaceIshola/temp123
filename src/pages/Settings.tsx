@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Shield } from "lucide-react";
+import { Loader2, User, Shield, Lock, KeyRound } from "lucide-react";
 import { useSecureProfiles } from "@/hooks/useSecureProfiles";
 
 interface Profile {
@@ -33,6 +33,13 @@ const Settings = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
+  // Password reset states
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -87,6 +94,113 @@ const Settings = () => {
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    // Validate passwords
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      // First verify current password by attempting to sign in
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email!,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        toast({
+          title: "Error",
+          description: "Current password is incorrect",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (updateError) {
+        toast({
+          title: "Error",
+          description: updateError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Clear password fields
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+
+      toast({
+        title: "Success",
+        description: "Password updated successfully"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update password",
+        variant: "destructive"
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) return;
+
+    setIsResettingPassword(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/settings`
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Reset Email Sent",
+        description: "Check your email for password reset instructions"
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to send reset email",
+        variant: "destructive"
+      });
+    } finally {
+      setIsResettingPassword(false);
     }
   };
 
@@ -257,6 +371,106 @@ const Settings = () => {
                     )}
                   </Button>
                 </form>
+              </CardContent>
+            </Card>
+
+            {/* Security Settings Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Security Settings
+                </CardTitle>
+                <CardDescription>
+                  Manage your account security and password
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Change Password Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="h-4 w-4" />
+                    <h3 className="text-lg font-medium">Change Password</h3>
+                  </div>
+                  <form onSubmit={handlePasswordChange} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="current_password">Current Password</Label>
+                      <Input
+                        id="current_password"
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="Enter your current password"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="new_password">New Password</Label>
+                      <Input
+                        id="new_password"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Enter your new password"
+                        minLength={6}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm_password">Confirm New Password</Label>
+                      <Input
+                        id="confirm_password"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="Confirm your new password"
+                        minLength={6}
+                        required
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      disabled={isChangingPassword || !currentPassword || !newPassword || !confirmPassword}
+                      className="w-full"
+                    >
+                      {isChangingPassword ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Changing Password...
+                        </>
+                      ) : (
+                        'Change Password'
+                      )}
+                    </Button>
+                  </form>
+                </div>
+
+                {/* Password Reset Section */}
+                <div className="border-t pt-6">
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-medium">Forgot Your Password?</h3>
+                      <p className="text-sm text-muted-foreground">
+                        If you can't remember your current password, you can request a password reset email.
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline"
+                      onClick={handlePasswordReset}
+                      disabled={isResettingPassword}
+                      className="w-full"
+                    >
+                      {isResettingPassword ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Sending Reset Email...
+                        </>
+                      ) : (
+                        'Send Password Reset Email'
+                      )}
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
