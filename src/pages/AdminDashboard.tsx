@@ -521,7 +521,7 @@ const AdminDashboard = () => {
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Users className="h-5 w-5" />
-                        Student Management ({students.length})
+                        Student Management ({overviewCounts.studentCount})
                       </div>
                       {isStudentsOpen ? (
                         <ChevronUp className="h-4 w-4" />
@@ -675,7 +675,7 @@ const AdminDashboard = () => {
                     <CardTitle className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <GraduationCap className="h-5 w-5" />
-                        Teacher Management ({teachers.length})
+                        Teacher Management ({overviewCounts.teacherCount})
                       </div>
                       {isTeachersOpen ? (
                         <ChevronUp className="h-4 w-4" />
