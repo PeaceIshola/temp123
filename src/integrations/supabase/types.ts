@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_tickets: {
+        Row: {
+          assigned_to: string | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          priority: string
+          resolved_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          priority?: string
+          resolved_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       content: {
         Row: {
           content: string
@@ -781,6 +823,10 @@ export type Database = {
           flashcards_created: number
           title: string
         }[]
+      }
+      get_admin_ticket_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_anonymized_email: {
         Args: { email: string }

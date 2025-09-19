@@ -1,4 +1,4 @@
-import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown } from "lucide-react";
+import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -12,6 +12,7 @@ const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [isTeacher, setIsTeacher] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [displayEmail, setDisplayEmail] = useState<string>('');
   const { anonymizeEmail } = useSecureProfiles();
 
@@ -26,6 +27,7 @@ const Header = () => {
   const checkTeacherRole = async () => {
     if (!user) {
       setIsTeacher(false);
+      setIsAdmin(false);
       return;
     }
 
@@ -35,10 +37,14 @@ const Header = () => {
         .select('role')
         .eq('user_id', user.id)
         .single();
-      setIsTeacher(data?.role === 'teacher');
+      
+      const role = data?.role;
+      setIsTeacher(role === 'teacher' || role === 'admin');
+      setIsAdmin(role === 'admin');
     } catch (err) {
       console.error('Header role check failed:', err);
       setIsTeacher(false);
+      setIsAdmin(false);
     }
   };
 
@@ -133,6 +139,12 @@ const Header = () => {
                   <DropdownMenuItem onClick={() => navigate("/teacher")}>
                     <BookOpen className="h-4 w-4 mr-2" />
                     Teacher Dashboard
+                  </DropdownMenuItem>
+                )}
+                {(isTeacher || isAdmin) && (
+                  <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin Dashboard
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={handleSignOut}>
