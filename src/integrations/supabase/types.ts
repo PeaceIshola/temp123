@@ -824,6 +824,10 @@ export type Database = {
           title: string
         }[]
       }
+      get_admin_overview_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       get_admin_ticket_stats: {
         Args: Record<PropertyKey, never>
         Returns: Json

@@ -82,6 +82,7 @@ const AdminDashboard = () => {
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [ticketStats, setTicketStats] = useState<TicketStats | null>(null);
+  const [overviewCounts, setOverviewCounts] = useState({ studentCount: 0, teacherCount: 0, ticketCount: 0 });
   
   // Collapsible states
   const [isStudentsOpen, setIsStudentsOpen] = useState(true);
@@ -149,7 +150,25 @@ const AdminDashboard = () => {
   const loadAdminData = async () => {
     setLoading(true);
     try {
-      // 1) Students
+      // 1) Get overview counts first
+      try {
+        const { data: countsData, error: countsError } = await supabase
+          .rpc('get_admin_overview_counts');
+
+        if (countsError) throw countsError;
+        
+        const counts = countsData as { studentCount: number; teacherCount: number; ticketCount: number };
+        setOverviewCounts({
+          studentCount: counts?.studentCount || 0,
+          teacherCount: counts?.teacherCount || 0,
+          ticketCount: counts?.ticketCount || 0
+        });
+      } catch (err) {
+        console.error('Overview counts fetch failed:', err);
+        setOverviewCounts({ studentCount: 0, teacherCount: 0, ticketCount: 0 });
+      }
+
+      // 2) Students list data
       try {
         const { data: studentsData, error: studentsError } = await supabase
           .rpc('get_students_for_teacher');
@@ -177,7 +196,7 @@ const AdminDashboard = () => {
         setStudents([]);
       }
 
-      // 2) Teachers
+      // 3) Teachers list data
       try {
         const { data: teachersData, error: teachersError } = await supabase
           .rpc('get_teachers_for_admin');
@@ -205,7 +224,7 @@ const AdminDashboard = () => {
         setTeachers([]);
       }
 
-      // 3) Tickets list
+      // 4) Tickets list
       try {
         const { data: ticketsData, error: ticketsError } = await supabase
           .from('admin_tickets')
@@ -219,7 +238,7 @@ const AdminDashboard = () => {
         setTickets([]);
       }
 
-      // 4) Ticket stats
+      // 5) Ticket stats
       try {
         const { data: statsData, error: statsError } = await supabase
           .rpc('get_admin_ticket_stats');
@@ -449,7 +468,7 @@ const AdminDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <Users className="h-8 w-8 text-blue-500" />
                   <div>
-                    <p className="text-2xl font-bold">{students.length}</p>
+                    <p className="text-2xl font-bold">{overviewCounts.studentCount}</p>
                     <p className="text-sm text-muted-foreground">Students</p>
                   </div>
                 </div>
@@ -461,7 +480,7 @@ const AdminDashboard = () => {
                 <div className="flex items-center space-x-2">
                   <GraduationCap className="h-8 w-8 text-green-500" />
                   <div>
-                    <p className="text-2xl font-bold">{teachers.length}</p>
+                    <p className="text-2xl font-bold">{overviewCounts.teacherCount}</p>
                     <p className="text-sm text-muted-foreground">Teachers</p>
                   </div>
                 </div>
