@@ -46,6 +46,7 @@ interface Profile {
   role: string | null;
   grade_level: number | null;
   school_name: string | null;
+  bio: string | null;
   created_at: string;
 }
 
@@ -147,18 +148,48 @@ const AdminDashboard = () => {
 
   const loadAdminData = async () => {
     try {
-      // Load students and teachers
-      const { data: profiles, error: profilesError } = await supabase
+      // Load students using the security definer function
+      const { data: studentsData, error: studentsError } = await supabase
+        .rpc('get_students_for_teacher');
+
+      if (studentsError) {
+        console.error('Error loading students:', studentsError);
+        throw studentsError;
+      }
+
+      // Transform the data to match the Profile interface
+      const transformedStudents = studentsData?.map(student => ({
+        id: student.student_id,
+        user_id: student.student_id,
+        full_name: student.full_name,
+        first_name: student.full_name.split(' ')[0] || '',
+        last_name: student.full_name.split(' ').slice(1).join(' ') || '',
+        username: null,
+        grade_level: student.grade_level,
+        school_name: student.school_name,
+        role: 'student',
+        email: student.anonymized_email,
+        bio: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })) || [];
+
+      setStudents(transformedStudents);
+
+      // For teachers, we'll need to create a similar function or use a different approach
+      // For now, let's use the current user if they're a teacher
+      const { data: currentProfile, error: profileError } = await supabase
         .from('profiles')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('user_id', user?.id)
+        .single();
 
-      if (profilesError) throw profilesError;
+      if (profileError) {
+        console.error('Error loading current profile:', profileError);
+      }
 
-      const studentsData = profiles?.filter(p => p.role === 'student') || [];
-      const teachersData = profiles?.filter(p => p.role === 'teacher') || [];
-      
-      setStudents(studentsData);
+      // Set current user as the only teacher visible for now
+      const teachersData = currentProfile && currentProfile.role === 'teacher' ? [currentProfile] : [];
       setTeachers(teachersData);
 
       // Load tickets
