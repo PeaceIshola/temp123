@@ -147,46 +147,44 @@ const AdminDashboard = () => {
   };
 
   const loadAdminData = async () => {
+    setLoading(true);
     try {
-      // Load students using the security definer function
-      const { data: studentsData, error: studentsError } = await supabase
-        .rpc('get_students_for_teacher');
+      // 1) Students
+      try {
+        const { data: studentsData, error: studentsError } = await supabase
+          .rpc('get_students_for_teacher');
 
-      if (studentsError) {
-        console.error('Error loading students:', studentsError);
-        throw studentsError;
+        if (studentsError) throw studentsError;
+
+        const transformedStudents = (studentsData || []).map((student: any) => ({
+          id: student.student_id,
+          user_id: student.student_id,
+          full_name: student.full_name,
+          first_name: student.full_name?.split(' ')[0] || '',
+          last_name: student.full_name?.split(' ').slice(1).join(' ') || '',
+          username: null,
+          grade_level: student.grade_level,
+          school_name: student.school_name,
+          role: 'student',
+          email: student.anonymized_email,
+          bio: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }));
+        setStudents(transformedStudents);
+      } catch (err) {
+        console.error('Students fetch failed:', err);
+        setStudents([]);
       }
 
-      // Transform the data to match the Profile interface
-      const transformedStudents = studentsData?.map(student => ({
-        id: student.student_id,
-        user_id: student.student_id,
-        full_name: student.full_name,
-        first_name: student.full_name.split(' ')[0] || '',
-        last_name: student.full_name.split(' ').slice(1).join(' ') || '',
-        username: null,
-        grade_level: student.grade_level,
-        school_name: student.school_name,
-        role: 'student',
-        email: student.anonymized_email,
-        bio: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      })) || [];
+      // 2) Teachers
+      try {
+        const { data: teachersData, error: teachersError } = await supabase
+          .rpc('get_teachers_for_admin');
 
-      setStudents(transformedStudents);
+        if (teachersError) throw teachersError;
 
-      // Load teachers using the security definer function
-      const { data: teachersData, error: teachersError } = await supabase
-        .rpc('get_teachers_for_admin');
-
-      if (teachersError) {
-        console.error('Error loading teachers:', teachersError);
-        // Set empty array if error
-        setTeachers([]);
-      } else {
-        // Transform the teacher data to match the Profile interface
-        const transformedTeachers = teachersData?.map(teacher => ({
+        const transformedTeachers = (teachersData || []).map((teacher: any) => ({
           id: teacher.teacher_id,
           user_id: teacher.teacher_id,
           full_name: teacher.full_name,
@@ -200,34 +198,48 @@ const AdminDashboard = () => {
           bio: null,
           created_at: teacher.created_at,
           updated_at: teacher.updated_at
-        })) || [];
-        
+        }));
         setTeachers(transformedTeachers);
+      } catch (err) {
+        console.error('Teachers fetch failed:', err);
+        setTeachers([]);
       }
 
-      // Load tickets
-      const { data: ticketsData, error: ticketsError } = await supabase
-        .from('admin_tickets')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // 3) Tickets list
+      try {
+        const { data: ticketsData, error: ticketsError } = await supabase
+          .from('admin_tickets')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-      if (ticketsError) throw ticketsError;
-      setTickets((ticketsData || []) as Ticket[]);
+        if (ticketsError) throw ticketsError;
+        setTickets((ticketsData || []) as Ticket[]);
+      } catch (err) {
+        console.error('Tickets fetch failed:', err);
+        setTickets([]);
+      }
 
-      // Load ticket statistics
-      const { data: statsData, error: statsError } = await supabase
-        .rpc('get_admin_ticket_stats');
+      // 4) Ticket stats
+      try {
+        const { data: statsData, error: statsError } = await supabase
+          .rpc('get_admin_ticket_stats');
 
-      if (statsError) throw statsError;
-      setTicketStats(statsData as unknown as TicketStats);
+        if (statsError) throw statsError;
+        setTicketStats(statsData as unknown as TicketStats);
+      } catch (err) {
+        console.error('Ticket stats fetch failed:', err);
+        setTicketStats(null);
+      }
 
     } catch (error: any) {
-      console.error('Error loading admin data:', error);
+      console.error('Error loading admin data (outer):', error);
       toast({
-        title: "Error",
-        description: "Failed to load admin data",
-        variant: "destructive"
+        title: 'Error',
+        description: error.message || 'Failed to load admin data',
+        variant: 'destructive'
       });
+    } finally {
+      setLoading(false);
     }
   };
 
