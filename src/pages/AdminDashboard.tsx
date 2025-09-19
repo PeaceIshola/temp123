@@ -304,17 +304,18 @@ const AdminDashboard = () => {
 
   const handleProfileUpdate = async (profile: Profile) => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          username: profile.username,
-          role: profile.role,
-          grade_level: profile.grade_level,
-          school_name: profile.school_name
-        })
-        .eq('id', profile.id);
+      // Use RPC function for admin profile updates to bypass RLS restrictions
+      const { error } = await supabase.rpc('update_profile_as_admin', {
+        p_profile_id: profile.id,
+        p_first_name: profile.first_name,
+        p_last_name: profile.last_name,
+        p_full_name: profile.full_name,
+        p_username: profile.username,
+        p_role: profile.role,
+        p_grade_level: profile.grade_level,
+        p_school_name: profile.school_name,
+        p_bio: profile.bio
+      });
 
       if (error) throw error;
 
@@ -329,6 +330,33 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteProfile = async (profileId: string) => {
+    if (!confirm("Are you sure you want to delete this profile? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase.rpc('delete_profile_as_admin', {
+        p_profile_id: profileId
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Profile deleted successfully"
+      });
+      
+      loadAdminData();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete profile",
         variant: "destructive"
       });
     }
