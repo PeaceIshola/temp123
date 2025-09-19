@@ -800,6 +800,10 @@ export type Database = {
         Args: { p_subject_id: string }
         Returns: string
       }
+      delete_profile_as_admin: {
+        Args: { p_profile_id: string }
+        Returns: undefined
+      }
       detect_suspicious_profile_access: {
         Args: Record<PropertyKey, never>
         Returns: {
