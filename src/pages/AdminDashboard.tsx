@@ -176,21 +176,34 @@ const AdminDashboard = () => {
 
       setStudents(transformedStudents);
 
-      // For teachers, we'll need to create a similar function or use a different approach
-      // For now, let's use the current user if they're a teacher
-      const { data: currentProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', user?.id)
-        .single();
+      // Load teachers using the security definer function
+      const { data: teachersData, error: teachersError } = await supabase
+        .rpc('get_teachers_for_admin');
 
-      if (profileError) {
-        console.error('Error loading current profile:', profileError);
+      if (teachersError) {
+        console.error('Error loading teachers:', teachersError);
+        // Set empty array if error
+        setTeachers([]);
+      } else {
+        // Transform the teacher data to match the Profile interface
+        const transformedTeachers = teachersData?.map(teacher => ({
+          id: teacher.teacher_id,
+          user_id: teacher.teacher_id,
+          full_name: teacher.full_name,
+          first_name: teacher.first_name,
+          last_name: teacher.last_name,
+          username: null,
+          grade_level: null,
+          school_name: teacher.school_name,
+          role: 'teacher',
+          email: teacher.email,
+          bio: null,
+          created_at: teacher.created_at,
+          updated_at: teacher.updated_at
+        })) || [];
+        
+        setTeachers(transformedTeachers);
       }
-
-      // Set current user as the only teacher visible for now
-      const teachersData = currentProfile && currentProfile.role === 'teacher' ? [currentProfile] : [];
-      setTeachers(teachersData);
 
       // Load tickets
       const { data: ticketsData, error: ticketsError } = await supabase

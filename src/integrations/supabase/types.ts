@@ -965,6 +965,19 @@ export type Database = {
           student_id: string
         }[]
       }
+      get_teachers_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          created_at: string
+          email: string
+          first_name: string
+          full_name: string
+          last_name: string
+          school_name: string
+          teacher_id: string
+          updated_at: string
+        }[]
+      }
       increment_question_count: {
         Args: { question_id: string }
         Returns: undefined
