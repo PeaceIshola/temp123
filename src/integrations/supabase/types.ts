@@ -790,6 +790,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_educational_student_data: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          display_name: string
+          grade_level: number
+          role_verified: string
+          school_name: string
+          student_id: string
+        }[]
+      }
       get_platform_statistics: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -881,6 +891,15 @@ export type Database = {
           school_name: string
         }[]
       }
+      get_student_for_educational_purpose: {
+        Args: { p_purpose: string; p_student_id: string }
+        Returns: {
+          contact_method: string
+          grade_level: number
+          school_name: string
+          student_name: string
+        }[]
+      }
       get_student_list_for_teacher: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -907,6 +926,14 @@ export type Database = {
       is_teacher_or_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      log_student_data_access: {
+        Args: {
+          access_type: string
+          accessed_function: string
+          additional_info?: Json
+        }
+        Returns: undefined
       }
       submit_quiz_attempt: {
         Args: { p_answers: Json; p_topic_id: string }
