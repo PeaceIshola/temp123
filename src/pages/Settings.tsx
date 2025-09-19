@@ -8,11 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Crown, CreditCard, Shield } from "lucide-react";
-import { useSubscriptions } from "@/hooks/useSubscriptions";
+import { Loader2, User, Shield } from "lucide-react";
 import { useSecureProfiles } from "@/hooks/useSecureProfiles";
 
 interface Profile {
@@ -31,7 +29,6 @@ interface Profile {
 const Settings = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { subjects, subscriptions, loading: subscriptionsLoading, createSubscription } = useSubscriptions();
   const { getSecureProfile, updateProfile } = useSecureProfiles();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -93,26 +90,6 @@ const Settings = () => {
     }
   };
 
-  const handleSubscribe = async (subjectId: string, type: 'free' | 'premium') => {
-    try {
-      await createSubscription(subjectId, type);
-      toast({
-        title: "Success",
-        description: `Successfully subscribed to ${type} plan`
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error", 
-        description: error.message || "Failed to subscribe",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getSubscriptionStatus = (subjectId: string) => {
-    const subscription = subscriptions.find(sub => sub.subject_id === subjectId);
-    return subscription?.subscription_type || 'none';
-  };
 
   if (loading) {
     return (
@@ -158,205 +135,131 @@ const Settings = () => {
               <span className="bg-gradient-hero bg-clip-text text-transparent">Settings</span>
             </h1>
             <p className="text-lg text-muted-foreground">
-              Manage your profile and subscription preferences
+              Manage your profile information
             </p>
           </div>
 
-          <Tabs defaultValue="profile" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="profile" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Profile
-              </TabsTrigger>
-              <TabsTrigger value="subscriptions" className="flex items-center gap-2">
-                <CreditCard className="h-4 w-4" />
-                Subscriptions
-              </TabsTrigger>
-            </TabsList>
+          <div className="space-y-6">
+            <Card>
 
-            <TabsContent value="profile">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Profile Information
-                  </CardTitle>
-                  <CardDescription>
-                    Update your personal information and preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleProfileUpdate} className="space-y-6">
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="first_name">First Name</Label>
-                        <Input
-                          id="first_name"
-                          value={profile.first_name || ''}
-                          onChange={(e) => setProfile(prev => prev ? {...prev, first_name: e.target.value} : null)}
-                          placeholder="Enter your first name"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="last_name">Last Name</Label>
-                        <Input
-                          id="last_name"
-                          value={profile.last_name || ''}
-                          onChange={(e) => setProfile(prev => prev ? {...prev, last_name: e.target.value} : null)}
-                          placeholder="Enter your last name"
-                        />
-                      </div>
-                    </div>
-
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Profile Information
+                </CardTitle>
+                <CardDescription>
+                  Update your personal information and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleProfileUpdate} className="space-y-6">
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="username">Username</Label>
+                      <Label htmlFor="first_name">First Name</Label>
                       <Input
-                        id="username"
-                        value={profile.username || ''}
-                        onChange={(e) => setProfile(prev => prev ? {...prev, username: e.target.value} : null)}
-                        placeholder="Choose a unique username"
+                        id="first_name"
+                        value={profile.first_name || ''}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, first_name: e.target.value} : null)}
+                        placeholder="Enter your first name"
                       />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="last_name">Last Name</Label>
                       <Input
-                        id="email"
-                        value={profile.email || user.email || ''}
-                        disabled
-                        className="bg-muted"
+                        id="last_name"
+                        value={profile.last_name || ''}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, last_name: e.target.value} : null)}
+                        placeholder="Enter your last name"
                       />
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Shield className="h-4 w-4" />
-                        Email is protected and cannot be changed here. Contact support to update your email.
-                      </div>
                     </div>
+                  </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="grade_level">Grade Level</Label>
-                        <Input
-                          id="grade_level"
-                          type="number"
-                          min="1"
-                          max="12"
-                          value={profile.grade_level || ''}
-                          onChange={(e) => setProfile(prev => prev ? {...prev, grade_level: parseInt(e.target.value) || null} : null)}
-                          placeholder="Enter your grade level"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="school_name">School Name</Label>
-                        <Input
-                          id="school_name"
-                          value={profile.school_name || ''}
-                          onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
-                          placeholder="Enter your school name"
-                        />
-                      </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={profile.username || ''}
+                      onChange={(e) => setProfile(prev => prev ? {...prev, username: e.target.value} : null)}
+                      placeholder="Choose a unique username"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      value={profile.email || user.email || ''}
+                      disabled
+                      className="bg-muted"
+                    />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Shield className="h-4 w-4" />
+                      Email is protected and cannot be changed here. Contact support to update your email.
                     </div>
+                  </div>
 
+                  <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="bio">Bio (Maximum 500 characters)</Label>
-                      <Textarea
-                        id="bio"
-                        value={profile.bio || ''}
-                        onChange={(e) => setProfile(prev => prev ? {...prev, bio: e.target.value} : null)}
-                        placeholder="Tell us about yourself..."
-                        rows={4}
-                        maxLength={500}
+                      <Label htmlFor="grade_level">Grade Level</Label>
+                      <Input
+                        id="grade_level"
+                        type="number"
+                        min="1"
+                        max="12"
+                        value={profile.grade_level || ''}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, grade_level: parseInt(e.target.value) || null} : null)}
+                        placeholder="Enter your grade level"
                       />
-                      <p className="text-sm text-muted-foreground">
-                        {profile.bio ? profile.bio.length : 0}/500 characters
-                      </p>
                     </div>
-
                     <div className="space-y-2">
-                      <Label>Role</Label>
-                      <div>
-                        <Badge variant={profile.role === 'teacher' ? 'default' : 'secondary'}>
-                          {profile.role || 'student'}
-                        </Badge>
-                      </div>
+                      <Label htmlFor="school_name">School Name</Label>
+                      <Input
+                        id="school_name"
+                        value={profile.school_name || ''}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
+                        placeholder="Enter your school name"
+                      />
                     </div>
+                  </div>
 
-                    <Button type="submit" disabled={saving} className="w-full">
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        'Save Changes'
-                      )}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  <div className="space-y-2">
+                    <Label htmlFor="bio">Bio (Maximum 500 characters)</Label>
+                    <Textarea
+                      id="bio"
+                      value={profile.bio || ''}
+                      onChange={(e) => setProfile(prev => prev ? {...prev, bio: e.target.value} : null)}
+                      placeholder="Tell us about yourself..."
+                      rows={4}
+                      maxLength={500}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      {profile.bio ? profile.bio.length : 0}/500 characters
+                    </p>
+                  </div>
 
-            <TabsContent value="subscriptions">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Crown className="h-5 w-5" />
-                    Subject Subscriptions
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your subscriptions for enhanced learning features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {subscriptionsLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="h-6 w-6 animate-spin" />
+                  <div className="space-y-2">
+                    <Label>Role</Label>
+                    <div>
+                      <Badge variant={profile.role === 'teacher' ? 'default' : 'secondary'}>
+                        {profile.role || 'student'}
+                      </Badge>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {subjects.map((subject) => {
-                        const status = getSubscriptionStatus(subject.id);
-                        return (
-                          <div
-                            key={subject.id}
-                            className="flex items-center justify-between p-4 border rounded-lg"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div
-                                className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-medium"
-                                style={{ backgroundColor: subject.color }}
-                              >
-                                {subject.name.charAt(0)}
-                              </div>
-                              <div>
-                                <h3 className="font-medium">{subject.name}</h3>
-                                <p className="text-sm text-muted-foreground">{subject.description}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge 
-                                variant={status === 'premium' ? 'default' : status === 'free' ? 'secondary' : 'outline'}
-                              >
-                                {status === 'none' ? 'Not subscribed' : status}
-                              </Badge>
-                              {status !== 'premium' && (
-                                <Button
-                                  size="sm"
-                                  variant={status === 'none' ? 'default' : 'outline'}
-                                  onClick={() => handleSubscribe(subject.id, status === 'none' ? 'free' : 'premium')}
-                                >
-                                  {status === 'none' ? 'Subscribe Free' : 'Upgrade to Premium'}
-                                </Button>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  </div>
+
+                  <Button type="submit" disabled={saving} className="w-full">
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
       <Footer />
