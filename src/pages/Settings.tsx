@@ -9,8 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, User, Shield, Lock, KeyRound } from "lucide-react";
+import { Loader2, User, Shield, Lock, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { useSecureProfiles } from "@/hooks/useSecureProfiles";
 
 interface Profile {
@@ -40,6 +41,10 @@ const Settings = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  
+  // Collapsible states
+  const [isProfileOpen, setIsProfileOpen] = useState(true);
+  const [isSecurityOpen, setIsSecurityOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -254,18 +259,29 @@ const Settings = () => {
           </div>
 
           <div className="space-y-6">
+            {/* Profile Information Card */}
             <Card>
-
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Profile Information
-                </CardTitle>
-                <CardDescription>
-                  Update your personal information and preferences
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
+              <Collapsible open={isProfileOpen} onOpenChange={setIsProfileOpen}>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="hover:bg-muted/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Profile Information
+                      </div>
+                      {isProfileOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </CardTitle>
+                    <CardDescription className="text-left">
+                      Update your personal information and preferences
+                    </CardDescription>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
                 <form onSubmit={handleProfileUpdate} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -369,23 +385,36 @@ const Settings = () => {
                     ) : (
                       'Save Changes'
                     )}
-                  </Button>
-                </form>
-              </CardContent>
+                    </Button>
+                  </form>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
             </Card>
 
             {/* Security Settings Card */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="h-5 w-5" />
-                  Security Settings
-                </CardTitle>
-                <CardDescription>
-                  Manage your account security and password
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
+              <Collapsible open={isSecurityOpen} onOpenChange={setIsSecurityOpen}>
+                <CollapsibleTrigger className="w-full">
+                  <CardHeader className="hover:bg-muted/50 transition-colors">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lock className="h-5 w-5" />
+                        Security Settings
+                      </div>
+                      {isSecurityOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </CardTitle>
+                    <CardDescription className="text-left">
+                      Manage your account security and password
+                    </CardDescription>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-6">
                 {/* Change Password Section */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -472,6 +501,8 @@ const Settings = () => {
                   </div>
                 </div>
               </CardContent>
+            </CollapsibleContent>
+          </Collapsible>
             </Card>
           </div>
         </div>
