@@ -858,6 +858,24 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      get_profiles_for_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          bio: string
+          created_at: string
+          email: string
+          first_name: string
+          full_name: string
+          grade_level: number
+          last_name: string
+          profile_id: string
+          role: string
+          school_name: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_public_forum_answers: {
         Args: { p_question_id: string }
         Returns: {

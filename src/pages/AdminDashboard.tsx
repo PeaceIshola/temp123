@@ -168,99 +168,59 @@ const AdminDashboard = () => {
         setOverviewCounts({ studentCount: 0, teacherCount: 0, ticketCount: 0 });
       }
 
-      // 2) Students detailed data
+      // 2) Load all profiles with real UUIDs
       try {
-        const { data: studentsData, error: studentsError } = await supabase
-          .rpc('get_student_list_for_teacher');
+        const { data: profilesData, error: profilesError } = await supabase
+          .rpc('get_profiles_for_admin');
 
-        if (studentsError) throw studentsError;
+        if (profilesError) throw profilesError;
 
-        if (studentsData && studentsData.length > 0) {
-          const transformedStudents = studentsData.map((student: any, i: number) => ({
-            id: `student-${i}`,
-            user_id: `student-${i}`,
-            full_name: student.student_name,
-            first_name: student.student_name?.split(' ')[0] || '',
-            last_name: student.student_name?.split(' ').slice(1).join(' ') || '',
-            username: null,
-            grade_level: student.grade_level,
-            school_name: student.school_name,
-            role: 'student',
-            email: `s***@example.com`,
-            bio: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }));
-          setStudents(transformedStudents);
+        if (profilesData && profilesData.length > 0) {
+          const students = profilesData
+            .filter((profile: any) => profile.role === 'student')
+            .map((profile: any) => ({
+              id: profile.profile_id,
+              user_id: profile.user_id,
+              full_name: profile.full_name,
+              first_name: profile.first_name,
+              last_name: profile.last_name,
+              username: profile.username,
+              grade_level: profile.grade_level,
+              school_name: profile.school_name,
+              role: profile.role,
+              email: profile.email,
+              bio: profile.bio,
+              created_at: profile.created_at,
+              updated_at: profile.updated_at
+            }));
+
+          const teachers = profilesData
+            .filter((profile: any) => profile.role === 'teacher')
+            .map((profile: any) => ({
+              id: profile.profile_id,
+              user_id: profile.user_id,
+              full_name: profile.full_name,
+              first_name: profile.first_name,
+              last_name: profile.last_name,
+              username: profile.username,
+              grade_level: profile.grade_level,
+              school_name: profile.school_name,
+              role: profile.role,
+              email: profile.email,
+              bio: profile.bio,
+              created_at: profile.created_at,
+              updated_at: profile.updated_at
+            }));
+
+          setStudents(students);
+          setTeachers(teachers);
         } else {
-          // If no detailed data, create placeholder entries based on count
-          const placeholderStudents = Array(overviewCounts.studentCount || 0).fill(null).map((_, i) => ({
-            id: `student-${i}`,
-            user_id: `student-${i}`,
-            full_name: `Student ${i + 1}`,
-            first_name: `Student`,
-            last_name: `${i + 1}`,
-            username: null,
-            grade_level: Math.floor(Math.random() * 12) + 1,
-            school_name: 'Unknown School',
-            role: 'student',
-            email: 's***@example.com',
-            bio: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }));
-          setStudents(placeholderStudents);
+          setStudents([]);
+          setTeachers([]);
         }
       } catch (err) {
-        console.error('Students detailed fetch failed:', err);
+        console.error('Profiles fetch failed:', err);
         setStudents([]);
-      }
-
-      // 3) Teachers detailed data
-      try {
-        const { data: teachersData, error: teachersError } = await supabase
-          .rpc('get_teachers_for_admin');
-
-        if (teachersError) throw teachersError;
-
-        if (teachersData && teachersData.length > 0) {
-          const transformedTeachers = teachersData.map((teacher: any) => ({
-            id: teacher.teacher_id,
-            user_id: teacher.teacher_id,
-            full_name: teacher.full_name,
-            first_name: teacher.first_name,
-            last_name: teacher.last_name,
-            username: null,
-            grade_level: null,
-            school_name: teacher.school_name,
-            role: 'teacher',
-            email: teacher.email,
-            bio: null,
-            created_at: teacher.created_at,
-            updated_at: teacher.updated_at
-          }));
-          setTeachers(transformedTeachers);
-        } else {
-          // If no detailed data, create placeholder entries based on count
-          const placeholderTeachers = Array(overviewCounts.teacherCount || 0).fill(null).map((_, i) => ({
-            id: `teacher-${i}`,
-            user_id: `teacher-${i}`,
-            full_name: `Teacher ${i + 1}`,
-            first_name: `Teacher`,
-            last_name: `${i + 1}`,
-            username: null,
-            grade_level: null,
-            school_name: 'Unknown School',
-            role: 'teacher',
-            email: 't***@example.com',
-            bio: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }));
-          setTeachers(placeholderTeachers);
-        }
-      } catch (err) {
-        console.error('Teachers detailed fetch failed:', err);
         setTeachers([]);
       }
 
@@ -304,6 +264,11 @@ const AdminDashboard = () => {
 
   const handleProfileUpdate = async (profile: Profile) => {
     try {
+      // Ensure we have a valid UUID
+      if (!profile.id || typeof profile.id !== 'string') {
+        throw new Error('Invalid profile ID');
+      }
+
       // Use RPC function for admin profile updates to bypass RLS restrictions
       const { error } = await supabase.rpc('update_profile_as_admin', {
         p_profile_id: profile.id,
@@ -327,6 +292,7 @@ const AdminDashboard = () => {
       setEditingProfile(null);
       loadAdminData();
     } catch (error: any) {
+      console.error('Profile update error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
