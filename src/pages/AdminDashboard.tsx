@@ -277,6 +277,17 @@ const AdminDashboard = () => {
         throw new Error('Invalid profile ID');
       }
 
+      // Validate grade_level before sending
+      let validatedGradeLevel = profile.grade_level;
+      if (validatedGradeLevel !== null) {
+        validatedGradeLevel = parseInt(String(validatedGradeLevel));
+        if (isNaN(validatedGradeLevel) || validatedGradeLevel < 1 || validatedGradeLevel > 12) {
+          validatedGradeLevel = null;
+        }
+      }
+
+      console.log('Updating profile with grade_level:', validatedGradeLevel);
+
       // Use RPC function for admin profile updates to bypass RLS restrictions
       const { error } = await supabase.rpc('update_profile_as_admin', {
         p_profile_id: profile.id,
@@ -285,7 +296,7 @@ const AdminDashboard = () => {
         p_full_name: profile.full_name,
         p_username: profile.username,
         p_role: profile.role,
-        p_grade_level: profile.grade_level,
+        p_grade_level: validatedGradeLevel,
         p_school_name: profile.school_name,
         p_bio: profile.bio
       });
@@ -652,10 +663,20 @@ const AdminDashboard = () => {
                                             min="1"
                                             max="12"
                                             value={editingProfile.grade_level || ''}
-                                            onChange={(e) => setEditingProfile({
-                                              ...editingProfile,
-                                              grade_level: parseInt(e.target.value) || null
-                                            })}
+                                             onChange={(e) => {
+                                               const value = e.target.value;
+                                               let gradeLevel = null;
+                                               if (value && value.trim() !== '') {
+                                                 const parsed = parseInt(value);
+                                                 if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) {
+                                                   gradeLevel = parsed;
+                                                 }
+                                               }
+                                               setEditingProfile({
+                                                 ...editingProfile,
+                                                 grade_level: gradeLevel
+                                               });
+                                             }}
                                           />
                                         </div>
                                         <div>
