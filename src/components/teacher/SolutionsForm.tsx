@@ -207,6 +207,7 @@ const SolutionsForm = () => {
         description="Upload solution guides and answer keys as PDF files"
         icon={<BookOpen className="h-5 w-5" />}
         metadata={getMetadata()}
+        isMetadataReady={!!(selectedSubject && selectedSubSubject && selectedTopic)}
       />
     </div>
   );
