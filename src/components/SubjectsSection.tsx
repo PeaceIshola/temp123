@@ -38,12 +38,13 @@ const SubjectsSection = () => {
     {
       id: "bst",
       title: "Basic Science & Technology",
-      description: "Master the fundamentals of science, technology, and ICT",
+      description: "Master the fundamentals of science, technology, ICT, and physical health education",
       color: "primary",
       subareas: [
         { name: "Basic Science", icon: Microscope, topics: ["Photosynthesis", "Human Body Systems", "Energy & Forces"] },
         { name: "Basic Technology", icon: Computer, topics: ["Simple Machines", "Electrical Circuits", "Materials"] },
-        { name: "ICT", icon: Computer, topics: ["Computer Basics", "Internet Safety", "Digital Skills"] }
+        { name: "Information and Communication Technology", icon: Computer, topics: ["Computer Basics", "Internet Safety", "Digital Skills"] },
+        { name: "Physical & Health Education", icon: Heart, topics: ["Nutrition", "Exercise", "First Aid"] }
       ]
     },
     {
