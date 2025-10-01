@@ -44,9 +44,10 @@ const QuizCreateForm = () => {
   const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
+  const [customTopics, setCustomTopics] = useState<string[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedSubSubject, setSelectedSubSubject] = useState("");
-  const [customTopic, setCustomTopic] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Quiz data
@@ -70,9 +71,16 @@ const QuizCreateForm = () => {
     if (selectedSubject) {
       fetchSubSubjects(selectedSubject);
       setSelectedSubSubject("");
-      setCustomTopic("");
+      setSelectedTopic("");
     }
   }, [selectedSubject]);
+
+  useEffect(() => {
+    if (selectedSubSubject) {
+      fetchCustomTopics(selectedSubSubject);
+      setSelectedTopic("");
+    }
+  }, [selectedSubSubject]);
 
   const fetchSubjects = async () => {
     const { data } = await supabase
@@ -92,6 +100,28 @@ const QuizCreateForm = () => {
       .order('name');
 
     setSubSubjects(data || []);
+  };
+
+  const fetchCustomTopics = async (subSubjectId: string) => {
+    // Fetch unique custom topics from content metadata
+    const { data } = await supabase
+      .from('content')
+      .select('metadata')
+      .eq('metadata->>subSubjectId', subSubjectId)
+      .not('metadata->>topic', 'is', null);
+
+    if (data) {
+      const topics = data
+        .map(item => {
+          const metadata = item.metadata as Record<string, any>;
+          return metadata?.topic as string;
+        })
+        .filter((topic, index, self) => topic && self.indexOf(topic) === index)
+        .sort();
+      setCustomTopics(topics);
+    } else {
+      setCustomTopics([]);
+    }
   };
 
 
@@ -166,7 +196,7 @@ const QuizCreateForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!customTopic.trim() || !quizTitle || questions.length === 0 || !selectedSubSubject) {
+    if (!selectedTopic || !quizTitle || questions.length === 0 || !selectedSubSubject) {
       toast({
         title: "Error",
         description: "Please fill in all required fields and add at least one question",
@@ -178,7 +208,7 @@ const QuizCreateForm = () => {
     setLoading(true);
 
     try {
-      console.log('Creating quiz with', questions.length, 'questions for topic:', customTopic);
+      console.log('Creating quiz with', questions.length, 'questions for topic:', selectedTopic);
       
       // Find or create the topic
       let topicId: string;
@@ -186,7 +216,7 @@ const QuizCreateForm = () => {
         .from('topics')
         .select('id')
         .eq('sub_subject_id', selectedSubSubject)
-        .eq('title', customTopic.trim())
+        .eq('title', selectedTopic)
         .single();
 
       if (existingTopic) {
@@ -197,8 +227,8 @@ const QuizCreateForm = () => {
           .from('topics')
           .insert({
             sub_subject_id: selectedSubSubject,
-            title: customTopic.trim(),
-            description: `Quiz topic: ${customTopic.trim()}`
+            title: selectedTopic,
+            description: `Quiz topic: ${selectedTopic}`
           })
           .select('id')
           .single();
@@ -257,7 +287,7 @@ const QuizCreateForm = () => {
       setQuestions([]);
       setSelectedSubject("");
       setSelectedSubSubject("");
-      setCustomTopic("");
+      setSelectedTopic("");
     } catch (error: any) {
       console.error('Quiz creation failed:', error);
       toast({
@@ -322,14 +352,22 @@ const QuizCreateForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="topic">Topic</Label>
-              <Input
-                id="topic"
-                type="text"
-                placeholder="Type topic name..."
-                value={customTopic}
-                onChange={(e) => setCustomTopic(e.target.value)}
+              <Select 
+                value={selectedTopic} 
+                onValueChange={setSelectedTopic}
                 disabled={!selectedSubSubject}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select topic" />
+                </SelectTrigger>
+                <SelectContent>
+                  {customTopics.map((topic, index) => (
+                    <SelectItem key={index} value={topic}>
+                      {topic}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
