@@ -20,6 +20,14 @@ interface Content {
   id: string;
   title: string;
   content_type: string;
+  content: string;
+  metadata?: {
+    fileName?: string;
+    bucketName?: string;
+    subject?: string;
+    area?: string;
+    topic?: string;
+  };
   topic: {
     title: string;
     sub_subject: {
@@ -80,6 +88,8 @@ const ResourcesPage = () => {
           id,
           title,
           content_type,
+          content,
+          metadata,
           topic:topics!inner (
             title,
             sub_subject:sub_subjects!inner (
@@ -92,7 +102,7 @@ const ResourcesPage = () => {
         .eq('is_published', true);
 
       if (contentData) {
-        setContent(contentData);
+        setContent(contentData as Content[]);
         
         // Get flashcard counts for each content item
         const counts: Record<string, number> = {};
@@ -114,6 +124,28 @@ const ResourcesPage = () => {
 
   const handleFlashcardAccess = (contentId: string) => {
     navigate(`/flashcards/${contentId}`);
+  };
+
+  const handleDownloadPDF = async (fileName: string, bucketName: string, title: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .download(fileName);
+
+      if (error) throw error;
+
+      // Create download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${title}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+    }
   };
 
   const getContentIcon = (contentType: string) => {
@@ -202,42 +234,77 @@ const ResourcesPage = () => {
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {content
-                  .filter(item => flashcardCounts[item.id] > 0)
-                  .map((item) => {
-                    const IconComponent = getContentIcon(item.content_type);
-                    return (
-                      <Card key={item.id} className="hover:shadow-lg transition-shadow">
-                        <CardHeader>
-                          <div className="flex items-center gap-2 mb-2">
-                            <IconComponent className="h-5 w-5 text-primary" />
-                            <Badge variant="outline" className="text-xs">
-                              {item.content_type.toUpperCase()}
-                            </Badge>
+                {content.map((item) => {
+                  const IconComponent = getContentIcon(item.content_type);
+                  const hasFlashcards = flashcardCounts[item.id] > 0;
+                  const metadata = item.metadata as any;
+                  
+                  return (
+                    <Card key={item.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-center gap-2 mb-2">
+                          <IconComponent className="h-5 w-5 text-primary" />
+                          <Badge variant="outline" className="text-xs">
+                            {item.content_type.toUpperCase()}
+                          </Badge>
+                        </div>
+                        <CardTitle className="text-lg">{item.title}</CardTitle>
+                        <CardDescription>
+                          {item.topic.sub_subject.name} - {item.topic.title}
+                        </CardDescription>
+                        {metadata && (metadata.subject || metadata.area || metadata.topic) && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {metadata.subject && (
+                              <Badge variant="secondary" className="text-xs">
+                                {metadata.subject}
+                              </Badge>
+                            )}
+                            {metadata.area && (
+                              <Badge variant="secondary" className="text-xs">
+                                {metadata.area}
+                              </Badge>
+                            )}
+                            {metadata.topic && (
+                              <Badge variant="secondary" className="text-xs">
+                                {metadata.topic}
+                              </Badge>
+                            )}
                           </div>
-                          <CardTitle className="text-lg">{item.title}</CardTitle>
-                          <CardDescription>
-                            {item.topic.sub_subject.name} - {item.topic.title}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="flex flex-col gap-3">
-                            <div className="text-sm text-muted-foreground">
-                              {flashcardCounts[item.id]} flashcards available
-                            </div>
+                        )}
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-col gap-2">
+                          {item.content_type === 'pdf' && metadata?.fileName && metadata?.bucketName && (
                             <Button
-                              onClick={() => handleFlashcardAccess(item.id)}
+                              variant="outline"
+                              onClick={() => handleDownloadPDF(metadata.fileName, metadata.bucketName, item.title)}
                               className="gap-2"
                               size="sm"
                             >
-                              <Brain className="w-4 h-4" />
-                              Study Now
+                              <FileText className="w-4 h-4" />
+                              Download PDF
                             </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                          )}
+                          {hasFlashcards && (
+                            <>
+                              <div className="text-sm text-muted-foreground">
+                                {flashcardCounts[item.id]} flashcards available
+                              </div>
+                              <Button
+                                onClick={() => handleFlashcardAccess(item.id)}
+                                className="gap-2"
+                                size="sm"
+                              >
+                                <Brain className="w-4 h-4" />
+                                Study Flashcards
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </div>
