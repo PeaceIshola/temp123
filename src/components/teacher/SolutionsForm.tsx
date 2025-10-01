@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Subject {
@@ -28,10 +29,9 @@ interface Topic {
 const SolutionsForm = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedSubSubject, setSelectedSubSubject] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
 
   useEffect(() => {
     fetchSubjects();
@@ -41,16 +41,9 @@ const SolutionsForm = () => {
     if (selectedSubject) {
       fetchSubSubjects(selectedSubject);
       setSelectedSubSubject("");
-      setSelectedTopic("");
+      setCustomTopic("");
     }
   }, [selectedSubject]);
-
-  useEffect(() => {
-    if (selectedSubSubject) {
-      fetchTopics(selectedSubSubject);
-      setSelectedTopic("");
-    }
-  }, [selectedSubSubject]);
 
   const fetchSubjects = async () => {
     const { data } = await supabase
@@ -72,37 +65,26 @@ const SolutionsForm = () => {
     setSubSubjects(data || []);
   };
 
-  const fetchTopics = async (subSubjectId: string) => {
-    const { data } = await supabase
-      .from('topics')
-      .select('*')
-      .eq('sub_subject_id', subSubjectId)
-      .order('title');
-
-    setTopics(data || []);
-  };
-
   const resetSelections = () => {
     setSelectedSubject("");
     setSelectedSubSubject("");
-    setSelectedTopic("");
+    setCustomTopic("");
   };
 
   // Get the selected data for metadata
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
   const selectedSubSubjectData = subSubjects.find(s => s.id === selectedSubSubject);
-  const selectedTopicData = topics.find(t => t.id === selectedTopic);
 
   const getMetadata = () => {
-    if (!selectedSubjectData || !selectedSubSubjectData || !selectedTopicData) return undefined;
+    if (!selectedSubjectData || !selectedSubSubjectData || !customTopic.trim()) return undefined;
     
     return {
       subject: selectedSubjectData.code,
       area: selectedSubSubjectData.name,
-      topic: selectedTopicData.title,
+      topic: customTopic.trim(),
       subjectId: selectedSubject,
       subSubjectId: selectedSubSubject,
-      topicId: selectedTopic
+      topicId: null
     };
   };
 
@@ -155,32 +137,24 @@ const SolutionsForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="topic">Topic</Label>
-              <Select 
-                value={selectedTopic} 
-                onValueChange={setSelectedTopic}
+              <Input
+                id="topic"
+                type="text"
+                placeholder="Type topic name..."
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
                 disabled={!selectedSubSubject}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select topic" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border z-50">
-                  {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      {topic.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
-          {(selectedSubject || selectedSubSubject || selectedTopic) && (
+          {(selectedSubject || selectedSubSubject || customTopic) && (
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div className="text-sm">
                 <strong>Selected:</strong> 
                 {selectedSubjectData && ` ${selectedSubjectData.name}`}
                 {selectedSubSubjectData && ` > ${selectedSubSubjectData.name}`}
-                {selectedTopicData && ` > ${selectedTopicData.title}`}
+                {customTopic && ` > ${customTopic}`}
               </div>
               <Button variant="outline" size="sm" onClick={resetSelections}>
                 Clear

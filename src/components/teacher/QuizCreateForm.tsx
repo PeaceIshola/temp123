@@ -44,10 +44,9 @@ const QuizCreateForm = () => {
   const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
-  const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedSubSubject, setSelectedSubSubject] = useState("");
-  const [selectedTopic, setSelectedTopic] = useState("");
+  const [customTopic, setCustomTopic] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Quiz data
@@ -71,16 +70,9 @@ const QuizCreateForm = () => {
     if (selectedSubject) {
       fetchSubSubjects(selectedSubject);
       setSelectedSubSubject("");
-      setSelectedTopic("");
+      setCustomTopic("");
     }
   }, [selectedSubject]);
-
-  useEffect(() => {
-    if (selectedSubSubject) {
-      fetchTopics(selectedSubSubject);
-      setSelectedTopic("");
-    }
-  }, [selectedSubSubject]);
 
   const fetchSubjects = async () => {
     const { data } = await supabase
@@ -102,15 +94,6 @@ const QuizCreateForm = () => {
     setSubSubjects(data || []);
   };
 
-  const fetchTopics = async (subSubjectId: string) => {
-    const { data } = await supabase
-      .from('topics')
-      .select('*')
-      .eq('sub_subject_id', subSubjectId)
-      .order('title');
-
-    setTopics(data || []);
-  };
 
   const updateOption = (index: number, value: string) => {
     const newOptions = [...currentQuestion.options];
@@ -183,7 +166,7 @@ const QuizCreateForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedTopic || !quizTitle || questions.length === 0) {
+    if (!customTopic.trim() || !quizTitle || questions.length === 0 || !selectedSubSubject) {
       toast({
         title: "Error",
         description: "Please fill in all required fields and add at least one question",
@@ -195,13 +178,41 @@ const QuizCreateForm = () => {
     setLoading(true);
 
     try {
-      console.log('Creating quiz with', questions.length, 'questions for topic:', selectedTopic);
+      console.log('Creating quiz with', questions.length, 'questions for topic:', customTopic);
       
-      // First create the content entry for the quiz
+      // Find or create the topic
+      let topicId: string;
+      const { data: existingTopic } = await supabase
+        .from('topics')
+        .select('id')
+        .eq('sub_subject_id', selectedSubSubject)
+        .eq('title', customTopic.trim())
+        .single();
+
+      if (existingTopic) {
+        topicId = existingTopic.id;
+        console.log('Using existing topic:', topicId);
+      } else {
+        const { data: newTopic, error: topicError } = await supabase
+          .from('topics')
+          .insert({
+            sub_subject_id: selectedSubSubject,
+            title: customTopic.trim(),
+            description: `Quiz topic: ${customTopic.trim()}`
+          })
+          .select('id')
+          .single();
+
+        if (topicError) throw topicError;
+        topicId = newTopic.id;
+        console.log('Created new topic:', topicId);
+      }
+
+      // Create the content entry for the quiz
       const { data: contentData, error: contentError } = await supabase
         .from('content')
         .insert({
-          topic_id: selectedTopic,
+          topic_id: topicId,
           title: quizTitle,
           content: `Quiz with ${questions.length} questions`,
           content_type: "experiment",
@@ -216,7 +227,7 @@ const QuizCreateForm = () => {
 
       // Then create all questions
       const questionsToInsert = questions.map(q => ({
-        topic_id: selectedTopic,
+        topic_id: topicId,
         question_text: q.question_text,
         question_type: q.question_type,
         options: q.options.filter(opt => opt.trim() !== ""),
@@ -246,7 +257,7 @@ const QuizCreateForm = () => {
       setQuestions([]);
       setSelectedSubject("");
       setSelectedSubSubject("");
-      setSelectedTopic("");
+      setCustomTopic("");
     } catch (error: any) {
       console.error('Quiz creation failed:', error);
       toast({
@@ -311,22 +322,14 @@ const QuizCreateForm = () => {
 
             <div className="space-y-2">
               <Label htmlFor="topic">Topic</Label>
-              <Select 
-                value={selectedTopic} 
-                onValueChange={setSelectedTopic}
+              <Input
+                id="topic"
+                type="text"
+                placeholder="Type topic name..."
+                value={customTopic}
+                onChange={(e) => setCustomTopic(e.target.value)}
                 disabled={!selectedSubSubject}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select topic" />
-                </SelectTrigger>
-                <SelectContent>
-                  {topics.map((topic) => (
-                    <SelectItem key={topic.id} value={topic.id}>
-                      {topic.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           </div>
 
