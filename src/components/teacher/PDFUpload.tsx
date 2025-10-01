@@ -221,7 +221,13 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
         .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          metadata: dbMetadata ? {
+            subject: dbMetadata.subject,
+            area: dbMetadata.area,
+            topic: dbMetadata.topic,
+            title: title_
+          } : {}
         });
 
       if (error) throw error;

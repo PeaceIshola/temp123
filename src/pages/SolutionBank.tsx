@@ -47,22 +47,55 @@ const SolutionBank = () => {
     try {
       setLoading(true);
       
-      // Fetch content from solution-pdfs bucket
-      const { data: solutionData } = await supabase
-        .from('content')
-        .select(`
-          *,
-          topic:topics(
-            title,
-            sub_subject:sub_subjects(name)
-          )
-        `)
-        .eq('is_published', true)
-        .eq('content_type', 'pdf')
-        .eq('metadata->>bucketName', 'solution-pdfs')
-        .order('created_at', { ascending: true });
+      // Fetch files directly from solution-pdfs storage bucket
+      const { data: files, error } = await supabase.storage
+        .from('solution-pdfs')
+        .list('', {
+          limit: 100,
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' }
+        });
 
-      setSolutions(solutionData || []);
+      if (error) throw error;
+
+      // Fetch corresponding content records and storage metadata
+      const filesWithMetadata = await Promise.all((files || []).map(async (file) => {
+        // First try to get content record
+        const { data: contentData } = await supabase
+          .from('content')
+          .select('id, title, metadata, created_at, created_by')
+          .eq('content_type', 'pdf')
+          .like('content', `%${file.name}%`)
+          .maybeSingle();
+
+        // Get storage file metadata
+        const storageMetadata = file.metadata as any;
+        const customMetadata = storageMetadata?.customMetadata || {};
+
+        return {
+          id: file.id,
+          title: customMetadata.title || contentData?.title || file.name.replace(/^\d+-/, '').replace(/\.pdf$/, ''),
+          content: `PDF file: ${file.name}`,
+          content_type: 'pdf',
+          created_at: file.created_at,
+          metadata: {
+            fileName: file.name,
+            bucketName: 'solution-pdfs',
+            size: storageMetadata?.size,
+            subject: customMetadata.subject || (contentData?.metadata as any)?.subject,
+            area: customMetadata.area || (contentData?.metadata as any)?.area,
+            topic: customMetadata.topic || (contentData?.metadata as any)?.topic
+          },
+          topic: {
+            title: customMetadata.topic || (contentData?.metadata as any)?.topic || 'General',
+            sub_subject: {
+              name: customMetadata.area || (contentData?.metadata as any)?.area || 'Various'
+            }
+          }
+        };
+      }));
+
+      setSolutions(filesWithMetadata);
     } catch (error) {
       console.error('Error fetching solutions:', error);
       toast({
