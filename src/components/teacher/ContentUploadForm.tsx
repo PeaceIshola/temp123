@@ -225,6 +225,7 @@ const ContentUploadForm = () => {
         description="Upload educational content materials as PDF files"
         icon={<Upload className="h-5 w-5" />}
         metadata={getMetadata}
+        isMetadataReady={!!(selectedSubject && selectedSubSubject && customTopic.trim())}
       />
     </div>
   );

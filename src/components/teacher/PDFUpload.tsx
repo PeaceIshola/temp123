@@ -42,9 +42,10 @@ interface PDFUploadProps {
     subSubjectId?: string;
     topicId?: string;
   };
+  isMetadataReady?: boolean;
 }
 
-const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUploadProps) => {
+const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataReady = false }: PDFUploadProps) => {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
@@ -343,12 +344,12 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
           
           <Button 
             onClick={handleFileSelect}
-            disabled={loading || !title_.trim() || !metadata}
+            disabled={loading || !title_.trim() || !isMetadataReady}
             className="w-full"
           >
             {loading ? "Uploading..." : "Choose PDF File"}
           </Button>
-          {!metadata && (
+          {!isMetadataReady && (
             <p className="text-sm text-yellow-600 dark:text-yellow-400">
               ⚠️ Please select Subject, Area, and Topic above before uploading
             </p>
