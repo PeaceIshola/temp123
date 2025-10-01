@@ -4,10 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { HelpCircle, Clock, CheckCircle, MessageSquare, Send, User, Calendar } from "lucide-react";
+import { HelpCircle, Clock, CheckCircle, MessageSquare, Send, User, Calendar, Trash2 } from "lucide-react";
 
 interface HomeworkQuestion {
   id: string;
@@ -163,6 +164,31 @@ const HomeworkQuestionsManager = () => {
       });
     } finally {
       setIsSubmittingResponse(false);
+    }
+  };
+
+  const deleteQuestion = async (questionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('homework_help_questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      setQuestions(prev => prev.filter(q => q.id !== questionId));
+
+      toast({
+        title: "Question Deleted",
+        description: "The homework question has been deleted.",
+      });
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete question. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -327,6 +353,29 @@ const HomeworkQuestionsManager = () => {
                           Reset to Pending
                         </Button>
                       )}
+
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Delete
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Question?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will permanently delete this homework question. This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => deleteQuestion(question.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </CardContent>
                 </Card>
