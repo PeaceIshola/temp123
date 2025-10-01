@@ -27,7 +27,14 @@ interface PDFUploadProps {
   title: string;
   description: string;
   icon: React.ReactNode;
-  metadata?: {
+  metadata?: (() => Promise<{
+    subject?: string;
+    area?: string;
+    topic?: string;
+    subjectId?: string;
+    subSubjectId?: string;
+    topicId?: string;
+  } | undefined>) | {
     subject?: string;
     area?: string;
     topic?: string;
@@ -234,8 +241,12 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
       if (error) throw error;
 
       // If metadata is provided, also create a content record in the database
-      if (metadata && (metadata.topicId || (metadata.subject && metadata.area && metadata.topic))) {
-        await createContentRecord(fileName, metadata);
+      if (metadata) {
+        // If metadata is a function (async), call it and await
+        const resolvedMetadata = typeof metadata === 'function' ? await metadata() : metadata;
+        if (resolvedMetadata && (resolvedMetadata.topicId || (resolvedMetadata.subject && resolvedMetadata.area && resolvedMetadata.topic))) {
+          await createContentRecord(fileName, resolvedMetadata);
+        }
       }
 
       toast({

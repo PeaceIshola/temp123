@@ -75,8 +75,34 @@ const ContentUploadForm = () => {
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
   const selectedSubSubjectData = subSubjects.find(s => s.id === selectedSubSubject);
 
-  const getMetadata = () => {
+  const getMetadata = async () => {
     if (!selectedSubjectData || !selectedSubSubjectData || !customTopic.trim()) return undefined;
+    
+    // First, try to find existing topic
+    const { data: existingTopic } = await supabase
+      .from('topics')
+      .select('id')
+      .eq('sub_subject_id', selectedSubSubject)
+      .eq('title', customTopic.trim())
+      .maybeSingle();
+
+    let topicId = existingTopic?.id;
+
+    // If topic doesn't exist, create it
+    if (!topicId) {
+      const { data: newTopic } = await supabase
+        .from('topics')
+        .insert({
+          sub_subject_id: selectedSubSubject,
+          title: customTopic.trim(),
+          description: `Learning materials for ${customTopic.trim()}`,
+          content: ''
+        })
+        .select('id')
+        .single();
+      
+      topicId = newTopic?.id;
+    }
     
     return {
       subject: selectedSubjectData.code,
@@ -84,7 +110,7 @@ const ContentUploadForm = () => {
       topic: customTopic.trim(),
       subjectId: selectedSubject,
       subSubjectId: selectedSubSubject,
-      topicId: null
+      topicId: topicId
     };
   };
 
@@ -169,7 +195,7 @@ const ContentUploadForm = () => {
         title="Upload Content PDFs"
         description="Upload educational content materials as PDF files"
         icon={<Upload className="h-5 w-5" />}
-        metadata={getMetadata()}
+        metadata={getMetadata}
       />
     </div>
   );
