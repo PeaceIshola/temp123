@@ -177,31 +177,45 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
       const fileExt = 'pdf';
       const fileName = `${Date.now()}-${title_.replace(/[^a-zA-Z0-9]/g, '_')}.${fileExt}`;
 
+      // Resolve metadata first if it's a function
+      let dbMetadata = null;
+      if (metadata) {
+        try {
+          dbMetadata = typeof metadata === 'function' ? await metadata() : metadata;
+          console.log('Resolved metadata before upload:', dbMetadata);
+        } catch (error) {
+          console.error('Error resolving metadata:', error);
+          toast({
+            title: "Error",
+            description: "Failed to resolve content organization. Please select Subject, Area, and Topic.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Check if we have valid metadata with topicId
+      if (!dbMetadata || !dbMetadata.topicId) {
+        toast({
+          title: "Error",
+          description: "Please select Subject, Area, and Topic before uploading.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const { data, error } = await supabase.storage
         .from(bucketName)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false,
-          metadata: metadata || {}
+          upsert: false
         });
 
       if (error) throw error;
 
-      // If metadata is provided, also create a content record in the database
-      if (metadata) {
-        try {
-          // If metadata is a function (async), call it and await
-          const resolvedMetadata = typeof metadata === 'function' ? await metadata() : metadata;
-          console.log('Resolved metadata:', resolvedMetadata);
-          if (resolvedMetadata && resolvedMetadata.topicId) {
-            await createContentRecord(fileName, resolvedMetadata);
-          } else {
-            console.warn('No valid topic ID in metadata, content record not created');
-          }
-        } catch (error) {
-          console.error('Error resolving metadata:', error);
-        }
-      }
+      // Create content record in the database
+      console.log('Creating content record with metadata:', dbMetadata);
+      await createContentRecord(fileName, dbMetadata);
 
       toast({
         title: "Success!",
@@ -329,11 +343,16 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
           
           <Button 
             onClick={handleFileSelect}
-            disabled={loading || !title_.trim()}
+            disabled={loading || !title_.trim() || !metadata}
             className="w-full"
           >
             {loading ? "Uploading..." : "Choose PDF File"}
           </Button>
+          {!metadata && (
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              ⚠️ Please select Subject, Area, and Topic above before uploading
+            </p>
+          )}
         </CardContent>
       </Card>
 
