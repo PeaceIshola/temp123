@@ -185,11 +185,23 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
           dbMetadata = typeof metadata === 'function' ? await metadata() : metadata;
           console.log('Resolved metadata before upload:', dbMetadata);
           
-          if (!dbMetadata || !dbMetadata.topicId) {
+          // For content-pdfs, topicId is required. For solution-pdfs, it's optional
+          if (bucketName === 'content-pdfs' && (!dbMetadata || !dbMetadata.topicId)) {
             console.error('Invalid metadata - missing topicId:', dbMetadata);
             toast({
               title: "Error",
               description: "Failed to create content record. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          // For solution-pdfs, we need at least subject, area, and topic
+          if (bucketName === 'solution-pdfs' && (!dbMetadata || !dbMetadata.subject || !dbMetadata.area || !dbMetadata.topic)) {
+            console.error('Invalid metadata - missing required fields:', dbMetadata);
+            toast({
+              title: "Error",
+              description: "Please select subject, area, and topic before uploading.",
               variant: "destructive",
             });
             return;
@@ -214,10 +226,16 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
 
       if (error) throw error;
 
-      // Create content record in the database
-      if (dbMetadata && dbMetadata.topicId) {
-        console.log('Creating content record with metadata:', dbMetadata);
-        await createContentRecord(fileName, dbMetadata);
+      // Create content record in the database (only if we have topicId for content-pdfs)
+      if (dbMetadata) {
+        if (bucketName === 'content-pdfs' && dbMetadata.topicId) {
+          console.log('Creating content record for content-pdfs with metadata:', dbMetadata);
+          await createContentRecord(fileName, dbMetadata);
+        } else if (bucketName === 'solution-pdfs') {
+          // For solution-pdfs, store metadata in a simplified way without requiring topicId
+          console.log('Storing solution PDF metadata:', dbMetadata);
+          // The file is uploaded, metadata is stored in storage, no content record needed for solutions
+        }
       }
 
       toast({
