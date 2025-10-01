@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import homeworkHelpImage from "@/assets/homework-help-hero.jpg";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,9 +11,16 @@ import {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import StudentHomeworkTracker from "@/components/student/StudentHomeworkTracker";
+import StudentHomeworkQuestionForm from "@/components/student/StudentHomeworkQuestionForm";
 
 const HomeworkHelp = () => {
   const { user } = useAuth();
+  const trackerRef = useRef<{ refreshQuestions: () => void }>(null);
+
+  const handleQuestionSubmitted = () => {
+    // Scroll to tracker section
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  };
 
   const subjects = [
     { code: "BST", name: "Basic Science & Technology", color: "#3B82F6" },
@@ -56,47 +63,27 @@ const HomeworkHelp = () => {
           {/* Hero Section */}
           <div className="text-center space-y-4 mb-12">
             <h1 className="text-3xl lg:text-4xl font-bold">
-              View Your <span className="bg-gradient-hero bg-clip-text text-transparent">Step-by-Step</span> Solutions
+              Get <span className="bg-gradient-hero bg-clip-text text-transparent">Step-by-Step</span> Solutions
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Check your homework questions and receive detailed explanations from teachers.
+              Ask your homework questions and receive detailed explanations from teachers.
             </p>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-md mx-auto">
-              <div className="flex items-center gap-2 text-blue-800">
-                <MessageSquare className="h-4 w-4" />
-                <p className="text-sm">
-                  Want to ask a new question? Use our <a href="/forum" className="font-medium underline">Ask & Answer Forum</a>
-                </p>
-              </div>
-            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="bg-gradient-card border shadow-card">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    Your Homework Solutions
-                  </CardTitle>
-                  <CardDescription>
-                    Track your submitted questions and view step-by-step solutions provided by teachers.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {!user ? (
-                    <div className="text-center py-8">
-                      <p className="text-muted-foreground mb-4">Please sign in to view your homework solutions.</p>
-                      <a href="/auth" className="text-primary font-medium underline">Sign In</a>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <p className="text-muted-foreground">Your homework questions and solutions will appear below.</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+              {user ? (
+                <StudentHomeworkQuestionForm onQuestionSubmitted={handleQuestionSubmitted} />
+              ) : (
+                <Card className="bg-gradient-card border shadow-card">
+                  <CardContent className="p-6 text-center">
+                    <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="text-muted-foreground mb-4">Please sign in to ask homework questions.</p>
+                    <a href="/auth" className="text-primary font-medium underline">Sign In</a>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Sidebar */}
