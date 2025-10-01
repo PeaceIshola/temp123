@@ -96,62 +96,9 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
   const createContentRecord = async (fileName: string, uploadMetadata: { subjectId?: string; subSubjectId?: string; topicId?: string; subject?: string; area?: string; topic?: string }) => {
     try {
       console.log('Creating content record with metadata:', uploadMetadata);
-      let topicId = uploadMetadata.topicId;
-      
-      // If we have a topicId, use it directly
-      if (!topicId && uploadMetadata.subject && uploadMetadata.area && uploadMetadata.topic) {
-        console.log('No topicId provided, creating from subject/area/topic');
-        // Fallback to old method - find or create topic
-        const { data: subjects } = await supabase
-          .from('subjects')
-          .select('id')
-          .eq('code', uploadMetadata.subject?.toUpperCase())
-          .single();
+      const topicId = uploadMetadata.topicId;
 
-        if (!subjects) {
-          console.error('Subject not found:', uploadMetadata.subject);
-          return;
-        }
-
-        const { data: subSubjects } = await supabase
-          .from('sub_subjects')
-          .select('id')
-          .eq('subject_id', subjects.id)
-          .eq('name', uploadMetadata.area)
-          .single();
-
-        if (!subSubjects) {
-          console.error('Sub-subject not found:', uploadMetadata.area);
-          return;
-        }
-
-        const { data: existingTopic } = await supabase
-          .from('topics')
-          .select('id')
-          .eq('sub_subject_id', subSubjects.id)
-          .eq('title', uploadMetadata.topic)
-          .single();
-
-        if (existingTopic) {
-          topicId = existingTopic.id;
-        } else {
-          const { data: newTopic } = await supabase
-            .from('topics')
-            .insert({
-              sub_subject_id: subSubjects.id,
-              title: uploadMetadata.topic,
-              description: `Learning materials for ${uploadMetadata.topic}`,
-              content: ''
-            })
-            .select('id')
-            .single();
-          
-          if (newTopic) {
-            topicId = newTopic.id;
-          }
-        }
-      }
-
+      // topicId should already be set by ContentUploadForm.getMetadata()
       if (topicId) {
         console.log('Creating content record for topicId:', topicId);
         // Create content record
@@ -242,10 +189,17 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
 
       // If metadata is provided, also create a content record in the database
       if (metadata) {
-        // If metadata is a function (async), call it and await
-        const resolvedMetadata = typeof metadata === 'function' ? await metadata() : metadata;
-        if (resolvedMetadata && (resolvedMetadata.topicId || (resolvedMetadata.subject && resolvedMetadata.area && resolvedMetadata.topic))) {
-          await createContentRecord(fileName, resolvedMetadata);
+        try {
+          // If metadata is a function (async), call it and await
+          const resolvedMetadata = typeof metadata === 'function' ? await metadata() : metadata;
+          console.log('Resolved metadata:', resolvedMetadata);
+          if (resolvedMetadata && resolvedMetadata.topicId) {
+            await createContentRecord(fileName, resolvedMetadata);
+          } else {
+            console.warn('No valid topic ID in metadata, content record not created');
+          }
+        } catch (error) {
+          console.error('Error resolving metadata:', error);
         }
       }
 

@@ -76,42 +76,62 @@ const ContentUploadForm = () => {
   const selectedSubSubjectData = subSubjects.find(s => s.id === selectedSubSubject);
 
   const getMetadata = async () => {
-    if (!selectedSubjectData || !selectedSubSubjectData || !customTopic.trim()) return undefined;
-    
-    // First, try to find existing topic
-    const { data: existingTopic } = await supabase
-      .from('topics')
-      .select('id')
-      .eq('sub_subject_id', selectedSubSubject)
-      .eq('title', customTopic.trim())
-      .maybeSingle();
-
-    let topicId = existingTopic?.id;
-
-    // If topic doesn't exist, create it
-    if (!topicId) {
-      const { data: newTopic } = await supabase
-        .from('topics')
-        .insert({
-          sub_subject_id: selectedSubSubject,
-          title: customTopic.trim(),
-          description: `Learning materials for ${customTopic.trim()}`,
-          content: ''
-        })
-        .select('id')
-        .single();
-      
-      topicId = newTopic?.id;
+    if (!selectedSubjectData || !selectedSubSubjectData || !customTopic.trim()) {
+      console.warn('Missing required metadata fields');
+      return undefined;
     }
     
-    return {
-      subject: selectedSubjectData.code,
-      area: selectedSubSubjectData.name,
-      topic: customTopic.trim(),
-      subjectId: selectedSubject,
-      subSubjectId: selectedSubSubject,
-      topicId: topicId
-    };
+    try {
+      // First, try to find existing topic
+      const { data: existingTopic } = await supabase
+        .from('topics')
+        .select('id')
+        .eq('sub_subject_id', selectedSubSubject)
+        .eq('title', customTopic.trim())
+        .maybeSingle();
+
+      let topicId = existingTopic?.id;
+
+      // If topic doesn't exist, create it
+      if (!topicId) {
+        console.log('Creating new topic:', customTopic.trim());
+        const { data: newTopic, error: topicError } = await supabase
+          .from('topics')
+          .insert({
+            sub_subject_id: selectedSubSubject,
+            title: customTopic.trim(),
+            description: `Learning materials for ${customTopic.trim()}`,
+            content: ''
+          })
+          .select('id')
+          .single();
+        
+        if (topicError) {
+          console.error('Error creating topic:', topicError);
+          return undefined;
+        }
+        
+        topicId = newTopic?.id;
+      }
+
+      if (!topicId) {
+        console.error('Failed to get or create topic ID');
+        return undefined;
+      }
+      
+      console.log('Using topic ID:', topicId);
+      return {
+        subject: selectedSubjectData.code,
+        area: selectedSubSubjectData.name,
+        topic: customTopic.trim(),
+        subjectId: selectedSubject,
+        subSubjectId: selectedSubSubject,
+        topicId: topicId
+      };
+    } catch (error) {
+      console.error('Error in getMetadata:', error);
+      return undefined;
+    }
   };
 
   return (
@@ -185,6 +205,15 @@ const ContentUploadForm = () => {
               <Button variant="outline" size="sm" onClick={resetSelections}>
                 Clear
               </Button>
+            </div>
+          )}
+
+          {(!selectedSubject || !selectedSubSubject || !customTopic.trim()) && (
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>⚠️ Required:</strong> Please select Subject, Area, and enter a Topic before uploading files. 
+                This ensures students can find and access your content.
+              </p>
             </div>
           )}
         </CardContent>
