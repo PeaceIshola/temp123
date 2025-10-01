@@ -184,25 +184,25 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
         try {
           dbMetadata = typeof metadata === 'function' ? await metadata() : metadata;
           console.log('Resolved metadata before upload:', dbMetadata);
+          
+          if (!dbMetadata || !dbMetadata.topicId) {
+            console.error('Invalid metadata - missing topicId:', dbMetadata);
+            toast({
+              title: "Error",
+              description: "Failed to create content record. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
         } catch (error) {
           console.error('Error resolving metadata:', error);
           toast({
             title: "Error",
-            description: "Failed to resolve content organization. Please select Subject, Area, and Topic.",
+            description: "Failed to prepare content. Please try again.",
             variant: "destructive",
           });
           return;
         }
-      }
-
-      // Check if we have valid metadata with topicId
-      if (!dbMetadata || !dbMetadata.topicId) {
-        toast({
-          title: "Error",
-          description: "Please select Subject, Area, and Topic before uploading.",
-          variant: "destructive",
-        });
-        return;
       }
 
       const { data, error } = await supabase.storage
@@ -215,8 +215,10 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
       if (error) throw error;
 
       // Create content record in the database
-      console.log('Creating content record with metadata:', dbMetadata);
-      await createContentRecord(fileName, dbMetadata);
+      if (dbMetadata && dbMetadata.topicId) {
+        console.log('Creating content record with metadata:', dbMetadata);
+        await createContentRecord(fileName, dbMetadata);
+      }
 
       toast({
         title: "Success!",
