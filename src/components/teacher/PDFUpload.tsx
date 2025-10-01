@@ -15,6 +15,11 @@ interface PDFFile {
   metadata?: {
     size?: number;
   };
+  categoryInfo?: {
+    subject?: string;
+    area?: string;
+    topic?: string;
+  };
 }
 
 interface PDFUploadProps {
@@ -54,7 +59,28 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
         });
 
       if (error) throw error;
-      setFiles(data || []);
+      
+      // Fetch category information from content table
+      const filesWithCategories = await Promise.all((data || []).map(async (file) => {
+        const { data: contentData } = await supabase
+          .from('content')
+          .select('metadata')
+          .eq('content_type', 'pdf')
+          .like('content', `%${file.name}%`)
+          .maybeSingle();
+        
+        const categoryInfo = contentData?.metadata as any;
+        return {
+          ...file,
+          categoryInfo: categoryInfo ? {
+            subject: categoryInfo.subject,
+            area: categoryInfo.area,
+            topic: categoryInfo.topic
+          } : undefined
+        };
+      }));
+      
+      setFiles(filesWithCategories);
     } catch (error) {
       console.error('Error fetching files:', error);
     }
@@ -355,14 +381,33 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata }: PDFUpload
             <div className="space-y-3">
               {files.map((file) => (
                 <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-1">
                     <FileText className="h-5 w-5 text-muted-foreground" />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium">{formatFileName(file.name)}</p>
                       <p className="text-sm text-muted-foreground">
                         {formatFileSize(file.metadata?.size)} • 
                         {new Date(file.created_at).toLocaleDateString()}
                       </p>
+                      {file.categoryInfo && (file.categoryInfo.subject || file.categoryInfo.area || file.categoryInfo.topic) && (
+                        <div className="flex items-center gap-2 mt-1 text-xs">
+                          {file.categoryInfo.subject && (
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary rounded">
+                              {file.categoryInfo.subject}
+                            </span>
+                          )}
+                          {file.categoryInfo.area && (
+                            <span className="px-2 py-0.5 bg-secondary/10 text-secondary-foreground rounded">
+                              {file.categoryInfo.area}
+                            </span>
+                          )}
+                          {file.categoryInfo.topic && (
+                            <span className="px-2 py-0.5 bg-accent/10 text-accent-foreground rounded">
+                              {file.categoryInfo.topic}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
