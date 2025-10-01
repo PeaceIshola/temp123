@@ -37,19 +37,19 @@ const SubjectsSection = () => {
   const subjects = [
     {
       id: "bst",
-      title: "Basic Science & Technology (BST)",
+      title: "Basic Science & Technology",
       description: "Master the fundamentals of science, technology, ICT, and physical health education",
       color: "primary",
       subareas: [
         { name: "Basic Science", icon: Microscope, topics: ["Photosynthesis", "Human Body Systems", "Energy & Forces"] },
         { name: "Basic Technology", icon: Computer, topics: ["Simple Machines", "Electrical Circuits", "Materials"] },
         { name: "ICT", icon: Computer, topics: ["Computer Basics", "Internet Safety", "Digital Skills"] },
-        { name: "PHE", icon: Heart, topics: ["Nutrition", "Exercise", "First Aid"] }
+        { name: "Physical & Health Education", icon: Heart, topics: ["Nutrition", "Exercise", "First Aid"] }
       ]
     },
     {
       id: "pvs", 
-      title: "Prevocational Studies (PVS)",
+      title: "Prevocational Studies",
       description: "Explore practical skills in agriculture and home economics for everyday life",
       color: "secondary",
       subareas: [
@@ -59,7 +59,7 @@ const SubjectsSection = () => {
     },
     {
       id: "nv",
-      title: "National Values Education (NV)", 
+      title: "National Values Education", 
       description: "Build strong civic awareness and understanding of Nigerian society",
       color: "accent",
       subareas: [
