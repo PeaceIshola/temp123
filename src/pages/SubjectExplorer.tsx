@@ -271,7 +271,7 @@ const SubjectExplorer = () => {
                   <Button
                     key={subSubject.id}
                     variant={selectedSubSubject === subSubject.id ? "default" : "ghost"}
-                    className="w-full justify-start"
+                    className="w-full justify-start text-left h-auto py-2 px-3 whitespace-normal break-words"
                     onClick={() => setSelectedSubSubject(subSubject.id)}
                   >
                     {subSubject.name}
