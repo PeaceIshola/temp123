@@ -922,6 +922,10 @@ export type Database = {
           risk_level: string
         }[]
       }
+      detect_profile_enumeration_attempt: {
+        Args: { accessing_user_id: string }
+        Returns: boolean
+      }
       detect_suspicious_profile_access: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -970,6 +974,14 @@ export type Database = {
           role_verified: string
           school_name: string
           student_id: string
+        }[]
+      }
+      get_minimal_profile_info: {
+        Args: { target_user_id: string }
+        Returns: {
+          display_name: string
+          is_own_profile: boolean
+          role: string
         }[]
       }
       get_my_email: {
