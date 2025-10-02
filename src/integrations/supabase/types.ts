@@ -856,7 +856,51 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      safe_profile_view: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          first_name: string | null
+          full_name: string | null
+          grade_level: number | null
+          id: string | null
+          last_name: string | null
+          role: string | null
+          school_name: string | null
+          updated_at: string | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          grade_level?: number | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
+          school_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          first_name?: string | null
+          full_name?: string | null
+          grade_level?: number | null
+          id?: string | null
+          last_name?: string | null
+          role?: string | null
+          school_name?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_profile_access_rate: {
@@ -930,6 +974,10 @@ export type Database = {
           school_name: string
           student_id: string
         }[]
+      }
+      get_my_email: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_platform_statistics: {
         Args: Record<PropertyKey, never>
