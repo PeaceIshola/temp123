@@ -3,10 +3,22 @@ import { SubscriptionCard } from "@/components/SubscriptionCard";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Crown } from "lucide-react";
+import { Loader2, Crown, Check } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const SubscriptionsPage = () => {
-  const { subjects, loading } = useSubscriptions();
+  const { subjects, loading, subscriptions } = useSubscriptions();
+  
+  // Check current subscription status
+  const hasActiveSubscription = subscriptions.some(sub => 
+    sub.status === 'active' && 
+    (!sub.expires_at || new Date(sub.expires_at) > new Date())
+  );
+  
+  const currentPlan = subscriptions.find(sub => 
+    sub.status === 'active' && 
+    (!sub.expires_at || new Date(sub.expires_at) > new Date())
+  )?.subscription_type || 'none';
 
   if (loading) {
     return (
@@ -36,6 +48,16 @@ const SubscriptionsPage = () => {
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Subscribe to specific subjects for enhanced learning resources and premium features
             </p>
+            
+            {/* Current Plan Status */}
+            {hasActiveSubscription && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                <Badge variant={currentPlan === 'premium' ? 'default' : 'secondary'} className="text-base px-4 py-2">
+                  <Check className="h-4 w-4 mr-2" />
+                  Current Plan: {currentPlan === 'premium' ? 'Premium Access' : 'Free Access'}
+                </Badge>
+              </div>
+            )}
           </div>
 
           {/* Features Overview */}
