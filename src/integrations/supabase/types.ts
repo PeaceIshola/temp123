@@ -900,6 +900,10 @@ export type Database = {
       }
     }
     Functions: {
+      check_content_access: {
+        Args: { p_content_id: string }
+        Returns: boolean
+      }
       check_profile_access_rate: {
         Args: Record<PropertyKey, never>
         Returns: boolean
