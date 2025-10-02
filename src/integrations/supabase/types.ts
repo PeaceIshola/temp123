@@ -1134,6 +1134,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      log_public_access_attempt: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       log_student_data_access: {
         Args: {
           access_type: string
@@ -1163,6 +1167,15 @@ export type Database = {
       verify_profile_access: {
         Args: { profile_user_id: string }
         Returns: boolean
+      }
+      verify_rls_protection: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          has_public_deny_policy: boolean
+          has_rls_enabled: boolean
+          security_status: string
+          table_name: string
+        }[]
       }
     }
     Enums: {
