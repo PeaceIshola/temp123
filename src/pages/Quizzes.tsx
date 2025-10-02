@@ -231,7 +231,12 @@ const QuizzesPage = () => {
                         <span>Created {new Date(quiz.created_at).toLocaleDateString()}</span>
                       </div>
 
-                      {!quiz.completed && (
+                      {quiz.completed ? (
+                        <div className="w-full bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center justify-center gap-2">
+                          <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                          <span className="font-semibold text-green-700 dark:text-green-300">Completed</span>
+                        </div>
+                      ) : (
                         <Button 
                           onClick={() => handleTakeQuiz(quiz)} 
                           className="w-full"
