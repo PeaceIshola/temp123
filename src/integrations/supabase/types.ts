@@ -853,51 +853,7 @@ export type Database = {
       }
     }
     Views: {
-      safe_profile_view: {
-        Row: {
-          bio: string | null
-          created_at: string | null
-          first_name: string | null
-          full_name: string | null
-          grade_level: number | null
-          id: string | null
-          last_name: string | null
-          role: string | null
-          school_name: string | null
-          updated_at: string | null
-          user_id: string | null
-          username: string | null
-        }
-        Insert: {
-          bio?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          full_name?: string | null
-          grade_level?: number | null
-          id?: string | null
-          last_name?: string | null
-          role?: string | null
-          school_name?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Update: {
-          bio?: string | null
-          created_at?: string | null
-          first_name?: string | null
-          full_name?: string | null
-          grade_level?: number | null
-          id?: string | null
-          last_name?: string | null
-          role?: string | null
-          school_name?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-          username?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       check_content_access: {
