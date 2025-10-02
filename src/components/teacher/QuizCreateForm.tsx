@@ -382,7 +382,15 @@ const QuizCreateForm = () => {
           {/* Current Questions */}
           {questions.length > 0 && (
             <div className="space-y-2">
-              <Label>Questions Added ({questions.length})</Label>
+              <div className="flex items-center justify-between">
+                <Label>Questions Added ({questions.length})</Label>
+                <div className="flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-lg">
+                  <span className="font-semibold text-primary">Total Points:</span>
+                  <Badge variant="default" className="text-lg px-3 py-1">
+                    {questions.reduce((sum, q) => sum + q.points, 0)} pts
+                  </Badge>
+                </div>
+              </div>
               <div className="space-y-2">
                 {questions.map((q, index) => (
                   <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
