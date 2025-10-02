@@ -184,7 +184,7 @@ const QuizzesPage = () => {
               {quizzes.map((quiz) => {
                 const subjectColor = getSubjectColor(quiz.subject_code);
                 return (
-                  <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
+                  <Card key={quiz.id} className={`hover:shadow-lg transition-shadow ${quiz.completed ? 'opacity-75' : ''}`}>
                     <CardHeader>
                       <div className="flex items-center gap-2 flex-wrap">
                         <Badge 
@@ -197,10 +197,17 @@ const QuizzesPage = () => {
                         >
                           {quiz.subject_code}
                         </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          <AlertCircle className="h-3 w-3 mr-1" />
-                          Single Attempt
-                        </Badge>
+                        {quiz.completed ? (
+                          <Badge variant="default" className="bg-green-600 text-white">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Completed
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Single Attempt
+                          </Badge>
+                        )}
                       </div>
                       <CardTitle className="text-xl mt-2">{quiz.title}</CardTitle>
                       <CardDescription>{quiz.topic_title}</CardDescription>
@@ -224,16 +231,7 @@ const QuizzesPage = () => {
                         <span>Created {new Date(quiz.created_at).toLocaleDateString()}</span>
                       </div>
 
-                      {quiz.completed ? (
-                        <Button 
-                          className="w-full"
-                          variant="outline"
-                          disabled
-                        >
-                          <CheckCircle className="mr-2 h-4 w-4" />
-                          Completed
-                        </Button>
-                      ) : (
+                      {!quiz.completed && (
                         <Button 
                           onClick={() => handleTakeQuiz(quiz)} 
                           className="w-full"
