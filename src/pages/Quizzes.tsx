@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, BookOpen, Clock, Trophy, Play, CheckCircle } from "lucide-react";
+import { Brain, BookOpen, Clock, Trophy, Play, CheckCircle, AlertCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -185,28 +185,36 @@ const QuizzesPage = () => {
                 return (
                   <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <Badge 
-                        variant="outline" 
-                        className={
-                          subjectColor === 'primary' ? 'border-primary text-primary' :
-                          subjectColor === 'secondary' ? 'border-secondary text-secondary' :
-                          'border-accent text-accent'
-                        }
-                      >
-                        {quiz.subject_code}
-                      </Badge>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            subjectColor === 'primary' ? 'border-primary text-primary' :
+                            subjectColor === 'secondary' ? 'border-secondary text-secondary' :
+                            'border-accent text-accent'
+                          }
+                        >
+                          {quiz.subject_code}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Single Attempt
+                        </Badge>
+                      </div>
                       <CardTitle className="text-xl mt-2">{quiz.title}</CardTitle>
                       <CardDescription>{quiz.topic_title}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex items-center gap-2">
-                          <BookOpen className="h-4 w-4 text-muted-foreground" />
-                          <span>{quiz.question_count} questions</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-4 w-4 text-muted-foreground" />
-                          <span>{quiz.total_points} points</span>
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <BookOpen className="h-4 w-4 text-muted-foreground" />
+                            <span>{quiz.question_count} questions</span>
+                          </div>
+                          <div className="flex items-center gap-2 font-semibold text-primary">
+                            <Trophy className="h-5 w-5" />
+                            <span className="text-lg">{quiz.total_points} pts</span>
+                          </div>
                         </div>
                       </div>
                       
