@@ -41,6 +41,7 @@ const TakeQuiz = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [results, setResults] = useState<any>(null);
+  const [alreadyCompleted, setAlreadyCompleted] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -74,6 +75,20 @@ const TakeQuiz = () => {
         .single();
 
       if (contentError) throw contentError;
+
+      // Check if user already completed this quiz
+      const { data: existingAttempt } = await supabase
+        .from('quiz_attempts')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('topic_id', content.topic_id)
+        .maybeSingle();
+
+      if (existingAttempt) {
+        setAlreadyCompleted(true);
+        setLoading(false);
+        return;
+      }
 
       // Get quiz questions using the function
       const { data: questions, error: questionsError } = await supabase.rpc('get_quiz_questions', {
@@ -195,6 +210,33 @@ const TakeQuiz = () => {
     );
   }
 
+  if (alreadyCompleted) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        <main className="py-20">
+          <div className="container max-w-2xl">
+            <Card>
+              <CardHeader className="text-center">
+                <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
+                <CardTitle className="text-2xl">Quiz Already Completed</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center space-y-4">
+                <p className="text-muted-foreground">
+                  You have already completed this quiz. Each quiz can only be taken once.
+                </p>
+                <Button onClick={() => navigate("/quizzes")}>
+                  Back to Quizzes
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   if (!quiz) {
     return (
       <div className="min-h-screen bg-background">
@@ -232,14 +274,9 @@ const TakeQuiz = () => {
                 <p className="text-lg">
                   You scored {Math.round((results.score / results.total_questions) * 100)}%
                 </p>
-                <div className="flex gap-4 justify-center">
-                  <Button onClick={() => navigate("/quizzes")}>
-                    Back to Quizzes
-                  </Button>
-                  <Button variant="outline" onClick={() => window.location.reload()}>
-                    Retake Quiz
-                  </Button>
-                </div>
+                <Button onClick={() => navigate("/quizzes")}>
+                  Back to Quizzes
+                </Button>
               </CardContent>
             </Card>
           </div>

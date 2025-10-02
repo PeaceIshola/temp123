@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { Brain, BookOpen, Clock, Trophy, Play } from "lucide-react";
+import { Brain, BookOpen, Clock, Trophy, Play, CheckCircle } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -20,6 +20,7 @@ interface Quiz {
   total_points: number;
   difficulty_level: number;
   created_at: string;
+  completed?: boolean;
 }
 
 const QuizzesPage = () => {
@@ -28,14 +29,27 @@ const QuizzesPage = () => {
   const { toast } = useToast();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
+  const [completedQuizzes, setCompletedQuizzes] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchQuizzes();
-  }, []);
+  }, [user]);
 
   const fetchQuizzes = async () => {
     console.log('Fetching quizzes...');
     try {
+      // Get user's completed quiz attempts if logged in
+      if (user) {
+        const { data: attempts } = await supabase
+          .from('quiz_attempts')
+          .select('topic_id')
+          .eq('user_id', user.id);
+        
+        if (attempts) {
+          setCompletedQuizzes(new Set(attempts.map(a => a.topic_id)));
+        }
+      }
+
       // Get all published quiz content
       const { data: quizContent } = await supabase
         .from('content')
@@ -82,7 +96,8 @@ const QuizzesPage = () => {
               question_count: questions?.length || 0,
               total_points: questions?.reduce((sum, q) => sum + q.points, 0) || 0,
               difficulty_level: content.topics.difficulty_level || 1,
-              created_at: content.created_at
+              created_at: content.created_at,
+              completed: completedQuizzes.has(content.topic_id)
             };
           })
         );
@@ -109,6 +124,14 @@ const QuizzesPage = () => {
         description: "Please sign in to take quizzes.",
       });
       navigate("/auth");
+      return;
+    }
+
+    if (quiz.completed) {
+      toast({
+        title: "Quiz Already Completed",
+        description: "You have already completed this quiz.",
+      });
       return;
     }
 
@@ -192,14 +215,25 @@ const QuizzesPage = () => {
                         <span>Created {new Date(quiz.created_at).toLocaleDateString()}</span>
                       </div>
 
-                      <Button 
-                        onClick={() => handleTakeQuiz(quiz)} 
-                        className="w-full"
-                        variant="hero"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Take Quiz
-                      </Button>
+                      {quiz.completed ? (
+                        <Button 
+                          className="w-full"
+                          variant="outline"
+                          disabled
+                        >
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Completed
+                        </Button>
+                      ) : (
+                        <Button 
+                          onClick={() => handleTakeQuiz(quiz)} 
+                          className="w-full"
+                          variant="hero"
+                        >
+                          <Play className="mr-2 h-4 w-4" />
+                          Take Quiz
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 );
