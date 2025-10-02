@@ -1088,6 +1088,23 @@ export type Database = {
           school_name: string
         }[]
       }
+      get_safe_profile_for_user: {
+        Args: { target_user_id?: string }
+        Returns: {
+          bio: string
+          created_at: string
+          first_name: string
+          full_name: string
+          grade_level: number
+          id: string
+          last_name: string
+          role: string
+          school_name: string
+          updated_at: string
+          user_id: string
+          username: string
+        }[]
+      }
       get_safe_user_display: {
         Args: { p_user_id: string }
         Returns: {
