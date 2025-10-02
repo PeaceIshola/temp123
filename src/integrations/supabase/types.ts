@@ -441,7 +441,6 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string
-          email: string | null
           first_name: string | null
           full_name: string | null
           grade_level: number | null
@@ -456,7 +455,6 @@ export type Database = {
         Insert: {
           bio?: string | null
           created_at?: string
-          email?: string | null
           first_name?: string | null
           full_name?: string | null
           grade_level?: number | null
@@ -471,7 +469,6 @@ export type Database = {
         Update: {
           bio?: string | null
           created_at?: string
-          email?: string | null
           first_name?: string | null
           full_name?: string | null
           grade_level?: number | null
@@ -1189,6 +1186,10 @@ export type Database = {
       }
       get_user_email_secure: {
         Args: { target_user_id: string }
+        Returns: string
+      }
+      hash_email: {
+        Args: { email_address: string }
         Returns: string
       }
       increment_question_count: {
