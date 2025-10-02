@@ -407,6 +407,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_privacy_settings: {
+        Row: {
+          created_at: string | null
+          hide_full_name: boolean | null
+          hide_grade_level: boolean | null
+          hide_school_name: boolean | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          hide_full_name?: boolean | null
+          hide_grade_level?: boolean | null
+          hide_school_name?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          hide_full_name?: boolean | null
+          hide_grade_level?: boolean | null
+          hide_school_name?: boolean | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           bio: string | null
@@ -796,6 +826,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_profile_access_rate: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       check_subscription_status: {
         Args: { p_subject_id: string }
         Returns: string
@@ -959,6 +993,17 @@ export type Database = {
           role: string
         }[]
       }
+      get_secure_profile_display: {
+        Args: { target_user_id: string }
+        Returns: {
+          display_name: string
+          grade_level: number
+          id: string
+          is_own_profile: boolean
+          role: string
+          school_name: string
+        }[]
+      }
       get_student_display_info: {
         Args: { p_user_id: string }
         Returns: {
@@ -996,6 +1041,16 @@ export type Database = {
           grade_level: number
           school_name: string
           student_id: string
+        }[]
+      }
+      get_suspicious_activities: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          activity_count: number
+          activity_type: string
+          first_occurrence: string
+          last_occurrence: string
+          user_id: string
         }[]
       }
       get_teachers_for_admin: {
