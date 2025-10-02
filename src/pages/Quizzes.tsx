@@ -125,24 +125,6 @@ const QuizzesPage = () => {
     }
   };
 
-  const getDifficultyLabel = (level: number) => {
-    switch (level) {
-      case 1: return "Easy";
-      case 2: return "Medium";
-      case 3: return "Hard";
-      default: return "Medium";
-    }
-  };
-
-  const getDifficultyColor = (level: number) => {
-    switch (level) {
-      case 1: return "text-accent";
-      case 2: return "text-secondary"; 
-      case 3: return "text-destructive";
-      default: return "text-secondary";
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -180,25 +162,17 @@ const QuizzesPage = () => {
                 return (
                   <Card key={quiz.id} className="hover:shadow-lg transition-shadow">
                     <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            subjectColor === 'primary' ? 'border-primary text-primary' :
-                            subjectColor === 'secondary' ? 'border-secondary text-secondary' :
-                            'border-accent text-accent'
-                          }
-                        >
-                          {quiz.subject_code}
-                        </Badge>
-                        <Badge 
-                          variant="outline"
-                          className={getDifficultyColor(quiz.difficulty_level)}
-                        >
-                          {getDifficultyLabel(quiz.difficulty_level)}
-                        </Badge>
-                      </div>
-                      <CardTitle className="text-xl">{quiz.title}</CardTitle>
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          subjectColor === 'primary' ? 'border-primary text-primary' :
+                          subjectColor === 'secondary' ? 'border-secondary text-secondary' :
+                          'border-accent text-accent'
+                        }
+                      >
+                        {quiz.subject_code}
+                      </Badge>
+                      <CardTitle className="text-xl mt-2">{quiz.title}</CardTitle>
                       <CardDescription>{quiz.topic_title}</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
