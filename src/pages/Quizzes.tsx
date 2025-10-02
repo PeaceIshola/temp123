@@ -77,15 +77,16 @@ const QuizzesPage = () => {
         const quizData = await Promise.all(
           quizContent.map(async (content) => {
             console.log('Processing content:', content);
-            const { data: questions, error: questionsError } = await supabase
-              .from('questions')
-              .select('points')
-              .eq('topic_id', content.topic_id);
+            
+            // Use the secure function to get quiz metadata
+            const { data: metadata, error: metadataError } = await supabase.rpc('get_quiz_metadata', {
+              p_topic_id: content.topic_id
+            });
 
-            if (questionsError) {
-              console.error('Error fetching questions for topic', content.topic_id, ':', questionsError);
+            if (metadataError) {
+              console.error('Error fetching quiz metadata for topic', content.topic_id, ':', metadataError);
             }
-            console.log('Questions for', content.title, ':', questions);
+            console.log('Metadata for', content.title, ':', metadata);
 
             return {
               id: content.id,
@@ -93,8 +94,8 @@ const QuizzesPage = () => {
               topic_id: content.topic_id,
               topic_title: content.topics.title,
               subject_code: content.topics.sub_subjects.subjects.code,
-              question_count: questions?.length || 0,
-              total_points: questions?.reduce((sum, q) => sum + q.points, 0) || 0,
+              question_count: Number(metadata?.[0]?.question_count || 0),
+              total_points: Number(metadata?.[0]?.total_points || 0),
               difficulty_level: content.topics.difficulty_level || 1,
               created_at: content.created_at,
               completed: completedQuizzes.has(content.topic_id)

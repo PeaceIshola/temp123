@@ -921,6 +921,13 @@ export type Database = {
           title: string
         }[]
       }
+      get_quiz_metadata: {
+        Args: { p_topic_id: string }
+        Returns: {
+          question_count: number
+          total_points: number
+        }[]
+      }
       get_quiz_questions: {
         Args: { p_topic_id: string }
         Returns: {
