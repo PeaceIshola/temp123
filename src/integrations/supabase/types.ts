@@ -573,6 +573,39 @@ export type Database = {
           },
         ]
       }
+      sensitive_profile_data: {
+        Row: {
+          created_at: string | null
+          email_access_count: number | null
+          email_hash: string
+          encrypted_email: string
+          id: string
+          last_email_access: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_access_count?: number | null
+          email_hash: string
+          encrypted_email: string
+          id?: string
+          last_email_access?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_access_count?: number | null
+          email_hash?: string
+          encrypted_email?: string
+          id?: string
+          last_email_access?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       solutions: {
         Row: {
           additional_resources: Json | null
@@ -838,6 +871,16 @@ export type Database = {
         Args: { p_profile_id: string }
         Returns: undefined
       }
+      detect_email_harvesting: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          attacker_user_id: string
+          attempt_count: number
+          first_attempt: string
+          last_attempt: string
+          risk_level: string
+        }[]
+      }
       detect_suspicious_profile_access: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -974,6 +1017,19 @@ export type Database = {
           topic_id: string
         }[]
       }
+      get_safe_profile: {
+        Args: { target_user_id: string }
+        Returns: {
+          bio: string
+          full_name: string
+          grade_level: number
+          id: string
+          is_own_profile: boolean
+          role: string
+          school_name: string
+          user_id: string
+        }[]
+      }
       get_safe_profile_display: {
         Args: { target_user_id: string }
         Returns: {
@@ -1065,6 +1121,10 @@ export type Database = {
           teacher_id: string
           updated_at: string
         }[]
+      }
+      get_user_email_secure: {
+        Args: { target_user_id: string }
+        Returns: string
       }
       increment_question_count: {
         Args: { question_id: string }
