@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Shield, Lock, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { useSecureProfiles } from "@/hooks/useSecureProfiles";
@@ -330,16 +331,20 @@ const Settings = () => {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="grade_level">Grade Level</Label>
-                      <Input
-                        id="grade_level"
-                        type="number"
-                        min="1"
-                        max="12"
-                        value={profile.grade_level || ''}
-                        onChange={(e) => setProfile(prev => prev ? {...prev, grade_level: parseInt(e.target.value) || null} : null)}
-                        placeholder="Enter your grade level"
-                      />
+                      <Label htmlFor="class">Class</Label>
+                      <Select
+                        value={profile.grade_level ? profile.grade_level.toString() : ''}
+                        onValueChange={(value) => setProfile(prev => prev ? {...prev, grade_level: parseInt(value)} : null)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your class" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="7">JSS1</SelectItem>
+                          <SelectItem value="8">JSS2</SelectItem>
+                          <SelectItem value="9">JSS3</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="school_name">School Name</Label>
