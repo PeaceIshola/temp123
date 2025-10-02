@@ -36,7 +36,6 @@ interface Question {
   correct_answer: string;
   explanation: string;
   points: number;
-  difficulty_level: number;
 }
 
 const QuizCreateForm = () => {
@@ -59,8 +58,7 @@ const QuizCreateForm = () => {
     options: ["", "", "", ""],
     correct_answer: "",
     explanation: "",
-    points: 1,
-    difficulty_level: 1
+    points: 1
   });
 
   useEffect(() => {
@@ -179,8 +177,7 @@ const QuizCreateForm = () => {
       options: ["", "", "", ""],
       correct_answer: "",
       explanation: "",
-      points: 1,
-      difficulty_level: 1
+      points: 1
     });
 
     toast({
@@ -264,7 +261,7 @@ const QuizCreateForm = () => {
         correct_answer: q.correct_answer,
         explanation: q.explanation,
         points: q.points,
-        difficulty_level: q.difficulty_level,
+        difficulty_level: 1,
         created_by: user?.id
       }));
 
@@ -435,33 +432,15 @@ const QuizCreateForm = () => {
                 </Select>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-2">
-                  <Label>Points</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={currentQuestion.points}
-                    onChange={(e) => setCurrentQuestion({...currentQuestion, points: parseInt(e.target.value) || 1})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Difficulty</Label>
-                  <Select 
-                    value={currentQuestion.difficulty_level.toString()} 
-                    onValueChange={(value) => setCurrentQuestion({...currentQuestion, difficulty_level: parseInt(value)})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">Easy</SelectItem>
-                      <SelectItem value="2">Medium</SelectItem>
-                      <SelectItem value="3">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Points</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={currentQuestion.points}
+                  onChange={(e) => setCurrentQuestion({...currentQuestion, points: parseInt(e.target.value) || 1})}
+                />
               </div>
             </div>
 
