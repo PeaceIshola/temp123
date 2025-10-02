@@ -35,17 +35,45 @@ const QuizzesPage = () => {
     fetchQuizzes();
   }, [user]);
 
+  // Refetch quizzes when user returns to the page
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        console.log('Page became visible, refreshing quiz list...');
+        fetchQuizzes();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', () => {
+      if (user) {
+        console.log('Window focused, refreshing quiz list...');
+        fetchQuizzes();
+      }
+    });
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', fetchQuizzes);
+    };
+  }, [user]);
+
   const fetchQuizzes = async () => {
     console.log('Fetching quizzes...');
     try {
       // Get user's completed quiz attempts if logged in
       if (user) {
-        const { data: attempts } = await supabase
+        const { data: attempts, error: attemptsError } = await supabase
           .from('quiz_attempts')
           .select('topic_id')
           .eq('user_id', user.id);
         
+        if (attemptsError) {
+          console.error('Error fetching quiz attempts:', attemptsError);
+        }
+        
         if (attempts) {
+          console.log('User completed quiz attempts:', attempts);
           setCompletedQuizzes(new Set(attempts.map(a => a.topic_id)));
         }
       }
@@ -104,6 +132,7 @@ const QuizzesPage = () => {
         );
 
         console.log('Processed quiz data:', quizData);
+        console.log('Quizzes marked as completed:', quizData.filter(q => q.completed).map(q => q.title));
         setQuizzes(quizData);
       }
     } catch (error) {
