@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { SecureRoleManager } from "@/components/admin/SecureRoleManager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,14 +256,14 @@ const AdminDashboard = () => {
 
       console.log('Updating profile with grade_level:', validatedGradeLevel);
 
-      // Use RPC function for admin profile updates to bypass RLS restrictions
+      // Use RPC function for admin profile updates (no role changes here)
       const { error } = await supabase.rpc('update_profile_as_admin', {
         p_profile_id: profile.id,
         p_first_name: profile.first_name,
         p_last_name: profile.last_name,
         p_full_name: profile.full_name,
         p_username: profile.username,
-        p_role: profile.role,
+        p_role: null, // Role updates are now handled by SecureRoleManager
         p_grade_level: validatedGradeLevel,
         p_school_name: profile.school_name,
         p_bio: profile.bio
@@ -578,7 +579,13 @@ const AdminDashboard = () => {
                               </TableCell>
                               <TableCell>{student.grade_level || 'N/A'}</TableCell>
                               <TableCell>{student.school_name || 'N/A'}</TableCell>
-                              <TableCell>
+                              <TableCell className="space-x-2">
+                                <SecureRoleManager
+                                  userId={student.user_id}
+                                  currentRole={student.role || 'student'}
+                                  userName={student.full_name || 'User'}
+                                  onRoleChanged={loadAdminData}
+                                />
                                 <Dialog>
                                   <DialogTrigger asChild>
                                     <Button 
@@ -593,7 +600,7 @@ const AdminDashboard = () => {
                                     <DialogHeader>
                                       <DialogTitle>Edit Student Profile</DialogTitle>
                                       <DialogDescription>
-                                        Update student information
+                                        Update student information (Role changes are managed separately)
                                       </DialogDescription>
                                     </DialogHeader>
                                     {editingProfile && (
@@ -656,25 +663,6 @@ const AdminDashboard = () => {
                                               school_name: e.target.value
                                             })}
                                           />
-                                        </div>
-                                        <div>
-                                          <Label htmlFor="role">Role</Label>
-                                          <Select
-                                            value={editingProfile.role || 'student'}
-                                            onValueChange={(value) => setEditingProfile({
-                                              ...editingProfile,
-                                              role: value
-                                            })}
-                                          >
-                                            <SelectTrigger>
-                                              <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                              <SelectItem value="student">Student</SelectItem>
-                                              <SelectItem value="teacher">Teacher</SelectItem>
-                                              <SelectItem value="admin">Admin</SelectItem>
-                                            </SelectContent>
-                                          </Select>
                                         </div>
                                         <Button 
                                           onClick={() => handleProfileUpdate(editingProfile)}
