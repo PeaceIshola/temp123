@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { BookOpen } from "lucide-react";
 import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,48 +8,18 @@ import QuizManagement from "@/components/teacher/QuizManagement";
 import SolutionsForm from "@/components/teacher/SolutionsForm";
 import { FlashcardAutoGenerator } from "@/components/teacher/FlashcardAutoGenerator";
 import HomeworkQuestionsManager from "@/components/teacher/HomeworkQuestionsManager";
+import { useUserRole } from "@/hooks/useUserRole";
 
 
 const TeacherDashboard = () => {
   const { user, loading } = useAuth();
-  const [isTeacher, setIsTeacher] = useState<boolean | null>(null);
+  const { isTeacher, loading: roleLoading } = useUserRole();
 
-  useEffect(() => {
-    if (loading) return;
-    if (!user) {
-      setIsTeacher(false);
-      return;
-    }
-    checkTeacherRole();
-  }, [user, loading]);
-
-  const checkTeacherRole = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user?.id)
-        .in('role', ['teacher', 'admin']);
-
-      if (error) {
-        console.error('Error checking role:', error);
-        setIsTeacher(false);
-        return;
-      }
-
-      setIsTeacher(data && data.length > 0);
-    } catch (e) {
-      console.error('Unexpected error checking role:', e);
-      setIsTeacher(false);
-    }
-  };
-
-
-  if (isTeacher === null) {
+  if (loading || roleLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Loading...</div>;
   }
 
-  if (!isTeacher) {
+  if (!user || !isTeacher) {
     return <Navigate to="/" replace />;
   }
 

@@ -1,51 +1,14 @@
-import { Book, Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown, Shield } from "lucide-react";
+import { Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useSecureProfiles } from "@/hooks/useSecureProfiles";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const [isTeacher, setIsTeacher] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [displayEmail, setDisplayEmail] = useState<string>('');
-  const { anonymizeEmail } = useSecureProfiles();
-
-  useEffect(() => {
-    checkTeacherRole();
-    if (user?.email) {
-      // Anonymize email for display to prevent exposure
-      anonymizeEmail(user.email).then(setDisplayEmail);
-    }
-  }, [user]);
-
-  const checkTeacherRole = async () => {
-    if (!user) {
-      setIsTeacher(false);
-      setIsAdmin(false);
-      return;
-    }
-
-    try {
-      const { data } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-      
-      const roles = data?.map(r => r.role) || [];
-      setIsTeacher(roles.includes('teacher') || roles.includes('admin'));
-      setIsAdmin(roles.includes('admin'));
-    } catch (err) {
-      console.error('Header role check failed:', err);
-      setIsTeacher(false);
-      setIsAdmin(false);
-    }
-  };
+  const { isTeacher, isAdmin } = useUserRole();
 
   const handleSignOut = async () => {
     await signOut();

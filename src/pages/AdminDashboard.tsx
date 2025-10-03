@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useUserRole } from "@/hooks/useUserRole";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -74,10 +75,10 @@ interface TicketStats {
 const AdminDashboard = () => {
   const { user, refreshSession } = useAuth();
   const { toast } = useToast();
+  const { isTeacher, isAdmin, loading: roleLoading } = useUserRole();
   
   // State management
   const [loading, setLoading] = useState(true);
-  const [isTeacherOrAdmin, setIsTeacherOrAdmin] = useState(false);
   const [students, setStudents] = useState<Profile[]>([]);
   const [teachers, setTeachers] = useState<Profile[]>([]);
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -100,52 +101,18 @@ const AdminDashboard = () => {
 
   // Check if user is teacher/admin
   useEffect(() => {
-    checkUserRole();
-  }, [user]);
+    if (!roleLoading) {
+      setLoading(false);
+    }
+  }, [roleLoading]);
 
   // Load data when teacher/admin role is confirmed
   useEffect(() => {
-    if (isTeacherOrAdmin) {
+    if (isTeacher || isAdmin) {
       loadAdminData();
     }
-  }, [isTeacherOrAdmin]);
+  }, [isTeacher, isAdmin]);
 
-  const checkUserRole = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .in('role', ['teacher', 'admin']);
-
-      if (error) throw error;
-      
-      const isAuthorized = data && data.length > 0;
-      setIsTeacherOrAdmin(isAuthorized);
-      
-      if (!isAuthorized) {
-        toast({
-          title: "Access Denied",
-          description: "You need teacher or admin privileges to access this page",
-          variant: "destructive"
-        });
-      }
-    } catch (error) {
-      console.error('Error checking user role:', error);
-      toast({
-        title: "Error",
-        description: "Failed to verify access permissions",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const loadAdminData = async () => {
     setLoading(true);
@@ -441,7 +408,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -457,7 +424,7 @@ const AdminDashboard = () => {
     );
   }
 
-  if (!user || !isTeacherOrAdmin) {
+  if (!user || (!isTeacher && !isAdmin)) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
