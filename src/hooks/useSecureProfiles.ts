@@ -203,14 +203,26 @@ export class SecureProfileService {
       if (!user.user) throw new Error('User not authenticated');
 
       // Sanitize input data
-      const sanitizedUpdates: any = {
-        first_name: this.sanitizeString(updates.first_name),
-        last_name: this.sanitizeString(updates.last_name),
-        username: this.sanitizeString(updates.username),
-        bio: this.sanitizeString(updates.bio, 500),
-        grade_level: updates.grade_level,
-        school_name: this.sanitizeString(updates.school_name)
-      };
+      const sanitizedUpdates: any = {};
+      
+      if (updates.first_name !== undefined) {
+        sanitizedUpdates.first_name = this.sanitizeString(updates.first_name);
+      }
+      if (updates.last_name !== undefined) {
+        sanitizedUpdates.last_name = this.sanitizeString(updates.last_name);
+      }
+      if (updates.username !== undefined) {
+        sanitizedUpdates.username = this.sanitizeString(updates.username);
+      }
+      if (updates.bio !== undefined) {
+        sanitizedUpdates.bio = this.sanitizeString(updates.bio, 500);
+      }
+      if (updates.grade_level !== undefined && updates.grade_level !== null) {
+        sanitizedUpdates.grade_level = updates.grade_level;
+      }
+      if (updates.school_name !== undefined) {
+        sanitizedUpdates.school_name = this.sanitizeString(updates.school_name);
+      }
 
       // Construct full_name if first_name and last_name are provided
       if (sanitizedUpdates.first_name && sanitizedUpdates.last_name) {
