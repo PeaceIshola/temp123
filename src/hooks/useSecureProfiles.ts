@@ -202,16 +202,16 @@ export class SecureProfileService {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) throw new Error('User not authenticated');
 
-      // Sanitize input data
+      // Sanitize input data - only include non-empty values
       const sanitizedUpdates: any = {};
       
-      if (updates.first_name !== undefined) {
+      if (updates.first_name !== undefined && updates.first_name !== null && updates.first_name.trim() !== '') {
         sanitizedUpdates.first_name = this.sanitizeString(updates.first_name);
       }
-      if (updates.last_name !== undefined) {
+      if (updates.last_name !== undefined && updates.last_name !== null && updates.last_name.trim() !== '') {
         sanitizedUpdates.last_name = this.sanitizeString(updates.last_name);
       }
-      if (updates.username !== undefined) {
+      if (updates.username !== undefined && updates.username !== null && updates.username.trim() !== '') {
         sanitizedUpdates.username = this.sanitizeString(updates.username);
       }
       if (updates.bio !== undefined) {
@@ -220,24 +220,36 @@ export class SecureProfileService {
       if (updates.grade_level !== undefined && updates.grade_level !== null) {
         sanitizedUpdates.grade_level = updates.grade_level;
       }
-      if (updates.school_name !== undefined) {
+      if (updates.school_name !== undefined && updates.school_name !== null && updates.school_name.trim() !== '') {
         sanitizedUpdates.school_name = this.sanitizeString(updates.school_name);
       }
 
-      // Construct full_name if first_name and last_name are provided
-      if (sanitizedUpdates.first_name && sanitizedUpdates.last_name) {
-        sanitizedUpdates.full_name = `${sanitizedUpdates.first_name} ${sanitizedUpdates.last_name}`;
+      // Construct full_name if both names exist
+      if (sanitizedUpdates.first_name || sanitizedUpdates.last_name) {
+        const firstName = sanitizedUpdates.first_name || updates.first_name || '';
+        const lastName = sanitizedUpdates.last_name || updates.last_name || '';
+        if (firstName || lastName) {
+          sanitizedUpdates.full_name = `${firstName} ${lastName}`.trim();
+        }
       }
+
+      console.log('Updating profile with:', sanitizedUpdates);
 
       // Log profile update attempt
       await this.logProfileAccess(user.user.id, 'profile_update_attempt');
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update(sanitizedUpdates)
-        .eq('user_id', user.user.id);
+        .eq('user_id', user.user.id)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
+
+      console.log('Update successful:', data);
 
       // Log successful update
       await this.logProfileAccess(user.user.id, 'profile_update_success');
@@ -245,7 +257,7 @@ export class SecureProfileService {
       return true;
     } catch (error) {
       console.error('Error updating secure profile:', error);
-      return false;
+      throw error;
     }
   }
 
@@ -310,6 +322,7 @@ export function useSecureProfiles() {
         throw new Error('Update failed');
       }
     } catch (error: any) {
+      console.error('Update profile error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update profile",
