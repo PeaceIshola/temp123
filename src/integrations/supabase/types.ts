@@ -863,6 +863,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_user_role: {
+        Args: {
+          assignment_reason?: string
+          new_role: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: Json
+      }
       check_content_access: {
         Args: { p_content_id: string }
         Returns: boolean
@@ -1201,6 +1209,14 @@ export type Database = {
           additional_info?: Json
         }
         Returns: undefined
+      }
+      revoke_user_role: {
+        Args: {
+          revocation_reason?: string
+          role_to_revoke: Database["public"]["Enums"]["app_role"]
+          target_user_id: string
+        }
+        Returns: Json
       }
       submit_quiz_attempt: {
         Args: { p_answers: Json; p_topic_id: string }
