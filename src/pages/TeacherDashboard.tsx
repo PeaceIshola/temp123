@@ -27,35 +27,19 @@ const TeacherDashboard = () => {
 
   const checkTeacherRole = async () => {
     try {
-      console.log('Checking teacher role for user:', user?.id);
-      const { data, error } = await supabase.rpc('get_current_user_role');
-      console.log('RPC response:', { data, error });
-
-      if (error) {
-        console.warn('RPC failed, falling back to profiles query:', error);
-      }
-
-      const roleFromRpc = (data as string | null) || null;
-
-      if (roleFromRpc) {
-        setIsTeacher(roleFromRpc === 'teacher');
-        return;
-      }
-
-      // Fallback: query profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
+      const { data, error } = await supabase
+        .from('user_roles')
         .select('role')
         .eq('user_id', user?.id)
-        .single();
+        .in('role', ['teacher', 'admin']);
 
-      if (profileError) {
-        console.error('Error fetching role from profiles:', profileError);
+      if (error) {
+        console.error('Error checking role:', error);
         setIsTeacher(false);
         return;
       }
 
-      setIsTeacher(profile?.role === 'teacher');
+      setIsTeacher(data && data.length > 0);
     } catch (e) {
       console.error('Unexpected error checking role:', e);
       setIsTeacher(false);

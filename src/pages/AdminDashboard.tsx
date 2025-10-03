@@ -117,15 +117,15 @@ const AdminDashboard = () => {
     }
 
     try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
+      const { data, error } = await supabase
+        .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .single();
+        .in('role', ['teacher', 'admin']);
 
       if (error) throw error;
       
-      const isAuthorized = profile?.role === 'teacher' || profile?.role === 'admin';
+      const isAuthorized = data && data.length > 0;
       setIsTeacherOrAdmin(isAuthorized);
       
       if (!isAuthorized) {

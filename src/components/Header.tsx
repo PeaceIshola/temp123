@@ -33,14 +33,13 @@ const Header = () => {
 
     try {
       const { data } = await supabase
-        .from('profiles')
+        .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
       
-      const role = data?.role;
-      setIsTeacher(role === 'teacher' || role === 'admin');
-      setIsAdmin(role === 'admin');
+      const roles = data?.map(r => r.role) || [];
+      setIsTeacher(roles.includes('teacher') || roles.includes('admin'));
+      setIsAdmin(roles.includes('admin'));
     } catch (err) {
       console.error('Header role check failed:', err);
       setIsTeacher(false);
