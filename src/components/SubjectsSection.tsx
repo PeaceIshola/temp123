@@ -41,6 +41,7 @@ const SubjectsSection = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   // Auto-search as user types with debounce
   useEffect(() => {
@@ -159,12 +160,29 @@ const SubjectsSection = () => {
     setShowResults(false);
     setSearchQuery("");
     setSearchResults([]);
+    setIsSearchExpanded(false);
   };
 
   const clearSearch = () => {
     setSearchQuery("");
     setSearchResults([]);
     setShowResults(false);
+    setIsSearchExpanded(false);
+  };
+
+  const toggleSearch = () => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to search for materials",
+      });
+      navigate("/auth");
+      return;
+    }
+    setIsSearchExpanded(!isSearchExpanded);
+    if (isSearchExpanded) {
+      clearSearch();
+    }
   };
 
   const getColorClasses = (color: string) => {
@@ -192,41 +210,53 @@ const SubjectsSection = () => {
           </p>
         </div>
 
-        {/* Search Bar */}
+        {/* Search Bar - Collapsed/Expanded */}
         <div className="max-w-2xl mx-auto mb-12">
-          <Card className="border-2">
-            <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder={user ? "Start typing to search materials..." : "Sign in to search materials..."}
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  disabled={!user}
-                  className="pl-10 pr-10"
-                />
-                {searchQuery && (
+          {!isSearchExpanded ? (
+            // Collapsed: Show only search icon
+            <div className="flex justify-center">
+              <Button
+                onClick={toggleSearch}
+                variant="outline"
+                size="lg"
+                className="gap-2 hover:scale-105 transition-transform"
+              >
+                <Search className="h-5 w-5" />
+                Search Materials
+              </Button>
+            </div>
+          ) : (
+            // Expanded: Show full search
+            <Card className="border-2">
+              <CardContent className="pt-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Start typing to search materials..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    autoFocus
+                    className="pl-10 pr-10"
+                  />
                   <button
                     onClick={clearSearch}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
                     <X className="h-4 w-4" />
                   </button>
-                )}
-                {isSearching && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                  </div>
-                )}
-              </div>
-              {!user && (
+                  {isSearching && (
+                    <div className="absolute right-10 top-1/2 transform -translate-y-1/2">
+                      <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                    </div>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Please <button onClick={() => navigate('/auth')} className="text-primary hover:underline">sign in</button> to search for materials
+                  Type at least 2 characters to search
                 </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Search Results */}
