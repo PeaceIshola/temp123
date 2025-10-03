@@ -28,7 +28,7 @@ export const loadSchools = async (): Promise<string[]> => {
   if (cachedSchools) return cachedSchools;
   
   try {
-    const response = await fetch('/src/data/schools.csv');
+    const response = await fetch('/schools.csv');
     const csvContent = await response.text();
     cachedSchools = parseSchoolNames(csvContent);
     return cachedSchools;

@@ -47,10 +47,10 @@ export function SchoolSelector({ value, onChange }: SchoolSelectorProps) {
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Search school..." />
-          <CommandList>
+      <PopoverContent className="w-[400px] p-0 bg-background" align="start" style={{ zIndex: 9999 }}>
+        <Command className="bg-background">
+          <CommandInput placeholder="Search school..." className="h-9" />
+          <CommandList className="max-h-[300px]">
             <CommandEmpty>
               {loading ? "Loading schools..." : "No school found."}
             </CommandEmpty>
