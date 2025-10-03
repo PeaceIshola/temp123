@@ -1,8 +1,12 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   Microscope, 
   Leaf, 
@@ -13,13 +17,30 @@ import {
   Scale, 
   MapPin, 
   Shield,
-  ArrowRight 
+  ArrowRight,
+  Search,
+  FileText,
+  X
 } from "lucide-react";
+
+interface SearchResult {
+  id: string;
+  title: string;
+  content_type: string;
+  subject_name: string;
+  subject_code: string;
+  topic_title: string;
+  sub_subject_name: string;
+}
 
 const SubjectsSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
 
   const handleSubjectClick = (subjectCode: string) => {
     if (user) {
@@ -70,6 +91,94 @@ const SubjectsSection = () => {
     }
   ];
 
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast({
+        title: "Enter search term",
+        description: "Please enter keywords to search for materials",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to search for materials",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data: contentData, error } = await supabase
+        .from("content")
+        .select(`
+          id,
+          title,
+          content_type,
+          topic:topics!inner (
+            title,
+            sub_subject:sub_subjects!inner (
+              name,
+              subject:subjects!inner (
+                name,
+                code
+              )
+            )
+          )
+        `)
+        .eq("is_published", true)
+        .or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
+
+      if (error) throw error;
+
+      const results: SearchResult[] = (contentData || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        content_type: item.content_type,
+        subject_name: item.topic.sub_subject.subject.name,
+        subject_code: item.topic.sub_subject.subject.code,
+        topic_title: item.topic.title,
+        sub_subject_name: item.topic.sub_subject.name,
+      }));
+
+      setSearchResults(results);
+      setShowResults(true);
+
+      if (results.length === 0) {
+        toast({
+          title: "No results found",
+          description: `No materials found matching "${searchQuery}"`,
+        });
+      }
+    } catch (error) {
+      console.error("Error searching:", error);
+      toast({
+        title: "Search failed",
+        description: "Failed to search materials. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    navigate("/resources", { state: { selectedSubject: result.subject_code } });
+    setShowResults(false);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setShowResults(false);
+  };
+
   const getColorClasses = (color: string) => {
     switch (color) {
       case "primary":
@@ -94,6 +203,89 @@ const SubjectsSection = () => {
             Comprehensive coverage of Nigerian Junior Secondary curriculum with interactive lessons and practical examples
           </p>
         </div>
+
+        {/* Search Bar */}
+        <div className="max-w-2xl mx-auto mb-12">
+          <Card className="border-2">
+            <CardContent className="pt-6">
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search for materials by keywords..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                    className="pl-10 pr-10"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={clearSearch}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+                <Button 
+                  onClick={handleSearch}
+                  disabled={isSearching || !searchQuery.trim()}
+                  className="gap-2"
+                >
+                  <Search className="h-4 w-4" />
+                  Search
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search Results */}
+        {showResults && searchResults.length > 0 && (
+          <div className="mb-12">
+            <Card className="border-2">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Search Results ({searchResults.length})</span>
+                  <Button variant="ghost" size="sm" onClick={clearSearch}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {searchResults.map((result) => (
+                    <Card
+                      key={result.id}
+                      className="hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => handleResultClick(result)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3">
+                          <FileText className="h-5 w-5 text-primary mt-1" />
+                          <div className="flex-1 space-y-1">
+                            <h4 className="font-semibold">{result.title}</h4>
+                            <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
+                              <Badge variant="outline">{result.content_type.toUpperCase()}</Badge>
+                              <span>•</span>
+                              <span>{result.subject_name}</span>
+                              <span>•</span>
+                              <span>{result.sub_subject_name}</span>
+                              <span>•</span>
+                              <span>{result.topic_title}</span>
+                            </div>
+                          </div>
+                          <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-8 mb-12">
           {subjects.map((subject) => (
