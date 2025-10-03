@@ -14,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, User, Shield, Lock, KeyRound, ChevronDown, ChevronUp } from "lucide-react";
 import { useSecureProfiles } from "@/hooks/useSecureProfiles";
-import { SchoolSelector } from "@/components/SchoolSelector";
 
 interface Profile {
   id: string;
@@ -349,9 +348,11 @@ const Settings = () => {
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="school_name">School Name</Label>
-                      <SchoolSelector
+                      <Input
+                        id="school_name"
                         value={profile.school_name || ''}
-                        onChange={(value) => setProfile(prev => prev ? {...prev, school_name: value} : null)}
+                        onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
+                        placeholder="Enter your school name"
                       />
                     </div>
                   </div>
