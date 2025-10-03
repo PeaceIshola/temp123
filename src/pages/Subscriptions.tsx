@@ -38,24 +38,6 @@ const SubscriptionsPage = () => {
       <Header />
       <main className="py-20">
         <div className="container">
-          <div className="text-center space-y-4 mb-16">
-            <h1 className="text-4xl lg:text-5xl font-bold">
-              Subject <span className="bg-gradient-hero bg-clip-text text-transparent">Subscriptions</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Subscribe to specific subjects for enhanced learning resources and premium features
-            </p>
-            
-            {/* Current Plan Status */}
-            {hasActiveSubscription && (
-              <div className="flex items-center justify-center gap-2 mt-4">
-                <Badge variant={currentPlan === 'premium' ? 'default' : 'secondary'} className="text-base px-4 py-2">
-                  <Check className="h-4 w-4 mr-2" />
-                  Current Plan: {currentPlan === 'premium' ? 'Premium Access' : 'Free Access'}
-                </Badge>
-              </div>
-            )}
-          </div>
 
           {/* Features Overview */}
           <div className="mb-16">
@@ -127,6 +109,12 @@ const SubscriptionsPage = () => {
                 <CardDescription className="text-base">
                   Access all subject modules at no cost
                 </CardDescription>
+                {currentPlan === 'free' && (
+                  <Badge variant="secondary" className="mt-2 self-center">
+                    <Check className="h-3 w-3 mr-1" />
+                    CURRENT PLAN
+                  </Badge>
+                )}
               </CardHeader>
 
               <CardContent className="space-y-6">
@@ -172,6 +160,12 @@ const SubscriptionsPage = () => {
                 <CardDescription className="text-base">
                   Enhanced learning with advanced features
                 </CardDescription>
+                {currentPlan === 'premium' && (
+                  <Badge variant="default" className="mt-2 self-center">
+                    <Check className="h-3 w-3 mr-1" />
+                    CURRENT PLAN
+                  </Badge>
+                )}
               </CardHeader>
 
               <CardContent className="space-y-6">
