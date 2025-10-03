@@ -38,6 +38,14 @@ const SubscriptionsPage = () => {
       <Header />
       <main className="py-20">
         <div className="container">
+          <div className="text-center space-y-3 mb-16">
+            <h1 className="text-4xl lg:text-5xl font-bold">
+              <span className="bg-gradient-hero bg-clip-text text-transparent">Edu Plus</span>
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Unlock your full learning potential with flexible subscription plans
+            </p>
+          </div>
 
           {/* Features Overview */}
           <div className="mb-16">
