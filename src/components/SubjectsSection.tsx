@@ -199,9 +199,9 @@ const SubjectsSection = () => {
   };
 
   return (
-    <section id="subjects" className="py-20 bg-background">
+    <section id="subjects" className="py-12 bg-background">
       <div className="container">
-        <div className="text-center space-y-4 mb-16">
+        <div className="text-center space-y-3 mb-10">
           <h2 className="text-3xl lg:text-4xl font-bold">
             Explore Your <span className="bg-gradient-hero bg-clip-text text-transparent">Core Subjects</span>
           </h2>
@@ -211,7 +211,7 @@ const SubjectsSection = () => {
         </div>
 
         {/* Search Bar - Collapsed/Expanded */}
-        <div className="max-w-2xl mx-auto mb-12">
+        <div className="max-w-2xl mx-auto mb-8">
           {!isSearchExpanded ? (
             // Collapsed: Show only search icon
             <div className="flex justify-center">
@@ -261,18 +261,18 @@ const SubjectsSection = () => {
 
         {/* Search Results */}
         {showResults && searchResults.length > 0 && (
-          <div className="mb-12">
+          <div className="mb-8">
             <Card className="border-2">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-lg">
                   <span>Search Results ({searchResults.length})</span>
                   <Button variant="ghost" size="sm" onClick={clearSearch}>
                     <X className="h-4 w-4" />
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
+              <CardContent className="pt-0">
+                <div className="space-y-2">
                   {searchResults.map((result) => (
                     <Card
                       key={result.id}
@@ -305,22 +305,22 @@ const SubjectsSection = () => {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid lg:grid-cols-3 gap-6">
           {subjects.map((subject) => (
             <Card key={subject.id} className={`${getColorClasses(subject.color)} border-2 transition-all duration-300 hover:shadow-lg group`}>
-              <CardHeader>
+              <CardHeader className="pb-4">
                 <CardTitle className="text-xl">{subject.title}</CardTitle>
                 <CardDescription className="text-base">{subject.description}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
                   {subject.subareas.map((subarea) => (
-                    <div key={subarea.name} className="space-y-2">
+                    <div key={subarea.name} className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <subarea.icon className="h-5 w-5 text-primary" />
-                        <span className="font-medium">{subarea.name}</span>
+                        <subarea.icon className="h-4 w-4 text-primary" />
+                        <span className="font-medium text-sm">{subarea.name}</span>
                       </div>
-                      <div className="flex flex-wrap gap-1 ml-7">
+                      <div className="flex flex-wrap gap-1 ml-6">
                         {subarea.topics.map((topic) => (
                           <span 
                             key={topic}
