@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Brain, FileText, Video } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -39,7 +39,10 @@ interface Content {
 const ResourcesPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [selectedSubject, setSelectedSubject] = useState<string>('BST');
+  const location = useLocation();
+  const [selectedSubject, setSelectedSubject] = useState<string>(
+    location.state?.selectedSubject || 'BST'
+  );
   const [content, setContent] = useState<Content[]>([]);
   const [flashcardCounts, setFlashcardCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
