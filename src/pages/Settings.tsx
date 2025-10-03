@@ -331,7 +331,7 @@ const Settings = () => {
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="class">Class</Label>
+                      <Label htmlFor="class">Class (grade level)</Label>
                       <Select
                         value={profile.grade_level ? profile.grade_level.toString() : ''}
                         onValueChange={(value) => setProfile(prev => prev ? {...prev, grade_level: parseInt(value)} : null)}
@@ -340,9 +340,9 @@ const Settings = () => {
                           <SelectValue placeholder="Select your class" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="7">JSS1</SelectItem>
-                          <SelectItem value="8">JSS2</SelectItem>
-                          <SelectItem value="9">JSS3</SelectItem>
+                          <SelectItem value="7">JSS1 (grade 7)</SelectItem>
+                          <SelectItem value="8">JSS2 (grade 8)</SelectItem>
+                          <SelectItem value="9">JSS3 (grade 9)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
