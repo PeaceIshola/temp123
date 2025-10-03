@@ -7,18 +7,15 @@ import { Loader2, Crown, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const SubscriptionsPage = () => {
-  const { subjects, loading, subscriptions } = useSubscriptions();
+  const { subjects, loading, getAllActiveSubscriptions } = useSubscriptions();
   
   // Check current subscription status
-  const hasActiveSubscription = subscriptions.some(sub => 
-    sub.status === 'active' && 
-    (!sub.expires_at || new Date(sub.expires_at) > new Date())
-  );
+  const activeSubscriptions = getAllActiveSubscriptions();
+  const hasActiveSubscription = activeSubscriptions.length > 0;
   
-  const currentPlan = subscriptions.find(sub => 
-    sub.status === 'active' && 
-    (!sub.expires_at || new Date(sub.expires_at) > new Date())
-  )?.subscription_type || 'none';
+  // Determine if user has any premium subscriptions
+  const hasPremium = activeSubscriptions.some(sub => sub.subscription_type === 'premium');
+  const currentPlan = hasPremium ? 'premium' : (hasActiveSubscription ? 'free' : 'none');
 
   if (loading) {
     return (

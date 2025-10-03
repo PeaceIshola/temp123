@@ -2,14 +2,19 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface Subscription {
-  id: string;
-  user_id: string;
+export interface SubjectSubscription {
   subject_id: string;
   subscription_type: 'free' | 'premium';
   status: 'active' | 'inactive' | 'expired';
   started_at: string;
   expires_at?: string;
+}
+
+export interface UserSubscription {
+  id: string;
+  user_id: string;
+  user_name?: string;
+  subscriptions: SubjectSubscription[];
   created_at: string;
   updated_at: string;
 }
@@ -24,7 +29,7 @@ export interface Subject {
 }
 
 export function useSubscriptions() {
-  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [userSubscription, setUserSubscription] = useState<UserSubscription | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -36,13 +41,23 @@ export function useSubscriptions() {
 
   const fetchSubscriptions = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setUserSubscription(null);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
-        .order('created_at', { ascending: false });
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
-      setSubscriptions(data as Subscription[] || []);
+      setUserSubscription(data ? {
+        ...data,
+        subscriptions: (data.subscriptions as unknown as SubjectSubscription[]) || []
+      } as UserSubscription : null);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
       toast({
@@ -86,31 +101,77 @@ export function useSubscriptions() {
         return null;
       }
 
-      const expiresAt = subscriptionType === 'premium' 
-        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year from now
-        : undefined;
-
-      const { data, error } = await supabase
-        .from('subscriptions')
-        .insert({
-          user_id: user.id,
-          subject_id: subjectId,
-          subscription_type: subscriptionType,
-          status: 'active',
-          expires_at: expiresAt,
-        })
-        .select()
+      // Get user profile for name
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
+      const expiresAt = subscriptionType === 'premium' 
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
 
-      setSubscriptions(prev => [data as Subscription, ...prev]);
+      const newSubscription: SubjectSubscription = {
+        subject_id: subjectId,
+        subscription_type: subscriptionType,
+        status: 'active',
+        started_at: new Date().toISOString(),
+        expires_at: expiresAt,
+      };
+
+      if (userSubscription) {
+        // Update existing record - add or update subscription in array
+        const existingSubscriptions = userSubscription.subscriptions || [];
+        const subIndex = existingSubscriptions.findIndex(s => s.subject_id === subjectId);
+        
+        let updatedSubscriptions;
+        if (subIndex >= 0) {
+          // Update existing subscription
+          updatedSubscriptions = [...existingSubscriptions];
+          updatedSubscriptions[subIndex] = newSubscription;
+        } else {
+          // Add new subscription
+          updatedSubscriptions = [...existingSubscriptions, newSubscription];
+        }
+
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .update({ subscriptions: updatedSubscriptions as any })
+          .eq('user_id', user.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        setUserSubscription(data ? {
+          ...data,
+          subscriptions: (data.subscriptions as unknown as SubjectSubscription[]) || []
+        } as UserSubscription : null);
+      } else {
+        // Create new record
+        const { data, error } = await supabase
+          .from('subscriptions')
+          .insert({
+            user_id: user.id,
+            user_name: profile?.full_name || 'User',
+            subscriptions: [newSubscription] as any,
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        setUserSubscription(data ? {
+          ...data,
+          subscriptions: (data.subscriptions as unknown as SubjectSubscription[]) || []
+        } as UserSubscription : null);
+      }
+
       toast({
         title: "Success",
         description: `Successfully subscribed to ${subscriptionType} plan`,
       });
 
-      return data;
+      return true;
     } catch (error: any) {
       console.error('Error creating subscription:', error);
       toast({
@@ -122,20 +183,33 @@ export function useSubscriptions() {
     }
   };
 
-  const updateSubscription = async (subscriptionId: string, updates: Partial<Subscription>) => {
+  const updateSubscription = async (subjectId: string, updates: Partial<SubjectSubscription>) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !userSubscription) return null;
+
+      const existingSubscriptions = userSubscription.subscriptions || [];
+      const subIndex = existingSubscriptions.findIndex(s => s.subject_id === subjectId);
+      
+      if (subIndex < 0) {
+        throw new Error('Subscription not found');
+      }
+
+      const updatedSubscriptions = [...existingSubscriptions];
+      updatedSubscriptions[subIndex] = { ...updatedSubscriptions[subIndex], ...updates };
+
       const { data, error } = await supabase
         .from('subscriptions')
-        .update(updates)
-        .eq('id', subscriptionId)
+        .update({ subscriptions: updatedSubscriptions as any })
+        .eq('user_id', user.id)
         .select()
         .single();
 
       if (error) throw error;
-
-      setSubscriptions(prev => 
-        prev.map(sub => sub.id === subscriptionId ? data as Subscription : sub)
-      );
+      setUserSubscription(data ? {
+        ...data,
+        subscriptions: (data.subscriptions as unknown as SubjectSubscription[]) || []
+      } as UserSubscription : null);
 
       toast({
         title: "Success",
@@ -155,35 +229,45 @@ export function useSubscriptions() {
   };
 
   const checkSubscriptionStatus = async (subjectId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('check_subscription_status', {
-        p_subject_id: subjectId
-      });
+    if (!userSubscription?.subscriptions) return 'none';
+    
+    const subscription = userSubscription.subscriptions.find(sub => 
+      sub.subject_id === subjectId && 
+      sub.status === 'active' &&
+      (!sub.expires_at || new Date(sub.expires_at) > new Date())
+    );
 
-      if (error) throw error;
-      return data || 'none';
-    } catch (error) {
-      console.error('Error checking subscription status:', error);
-      return 'none';
-    }
+    return subscription ? subscription.subscription_type : 'none';
   };
 
-  const getActiveSubscription = (subjectId: string) => {
-    return subscriptions.find(sub => 
+  const getActiveSubscription = (subjectId: string): SubjectSubscription | undefined => {
+    if (!userSubscription?.subscriptions) return undefined;
+    
+    return userSubscription.subscriptions.find(sub => 
       sub.subject_id === subjectId && 
       sub.status === 'active' &&
       (!sub.expires_at || new Date(sub.expires_at) > new Date())
     );
   };
 
+  const getAllActiveSubscriptions = (): SubjectSubscription[] => {
+    if (!userSubscription?.subscriptions) return [];
+    
+    return userSubscription.subscriptions.filter(sub => 
+      sub.status === 'active' &&
+      (!sub.expires_at || new Date(sub.expires_at) > new Date())
+    );
+  };
+
   return {
-    subscriptions,
+    userSubscription,
     subjects,
     loading,
     createSubscription,
     updateSubscription,
     checkSubscriptionStatus,
     getActiveSubscription,
+    getAllActiveSubscriptions,
     fetchSubscriptions,
   };
 }

@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Check, Crown, BookOpen } from "lucide-react";
-import { useSubscriptions, Subject } from "@/hooks/useSubscriptions";
+import { useSubscriptions, Subject, SubjectSubscription } from "@/hooks/useSubscriptions";
 
 interface SubscriptionCardProps {
   subject: Subject;
