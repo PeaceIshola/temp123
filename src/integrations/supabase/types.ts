@@ -715,46 +715,65 @@ export type Database = {
       subscriptions: {
         Row: {
           created_at: string
-          expires_at: string | null
           id: string
-          started_at: string
-          status: string
-          subject_id: string
-          subscription_type: string
+          subscriptions: Json
           updated_at: string
           user_id: string
+          user_name: string | null
         }
         Insert: {
           created_at?: string
-          expires_at?: string | null
           id?: string
-          started_at?: string
-          status?: string
-          subject_id: string
-          subscription_type?: string
+          subscriptions?: Json
           updated_at?: string
           user_id: string
+          user_name?: string | null
         }
         Update: {
           created_at?: string
-          expires_at?: string | null
           id?: string
-          started_at?: string
-          status?: string
-          subject_id?: string
-          subscription_type?: string
+          subscriptions?: Json
           updated_at?: string
           user_id?: string
+          user_name?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_subscriptions_subject"
-            columns: ["subject_id"]
-            isOneToOne: false
-            referencedRelation: "subjects"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      subscriptions_backup: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string | null
+          started_at: string | null
+          status: string | null
+          subject_id: string | null
+          subscription_type: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          started_at?: string | null
+          status?: string | null
+          subject_id?: string | null
+          subscription_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string | null
+          started_at?: string | null
+          status?: string | null
+          subject_id?: string | null
+          subscription_type?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       topics: {
         Row: {
@@ -866,6 +885,10 @@ export type Database = {
       }
       check_subscription_status: {
         Args: { p_subject_id: string }
+        Returns: string
+      }
+      check_user_subject_subscription: {
+        Args: { p_subject_id: string; p_user_id: string }
         Returns: string
       }
       delete_profile_as_admin: {
