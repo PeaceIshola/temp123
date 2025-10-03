@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,6 +41,69 @@ const SubjectsSection = () => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+
+  // Auto-search as user types with debounce
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        performSearch();
+      } else {
+        setSearchResults([]);
+        setShowResults(false);
+      }
+    }, 500); // 500ms debounce delay
+
+    return () => clearTimeout(delaySearch);
+  }, [searchQuery]);
+
+  const performSearch = async () => {
+    if (!user) {
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const { data: contentData, error } = await supabase
+        .from("content")
+        .select(`
+          id,
+          title,
+          content_type,
+          topic:topics!inner (
+            title,
+            sub_subject:sub_subjects!inner (
+              name,
+              subject:subjects!inner (
+                name,
+                code
+              )
+            )
+          )
+        `)
+        .eq("is_published", true)
+        .or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`)
+        .limit(10);
+
+      if (error) throw error;
+
+      const results: SearchResult[] = (contentData || []).map((item: any) => ({
+        id: item.id,
+        title: item.title,
+        content_type: item.content_type,
+        subject_name: item.topic.sub_subject.subject.name,
+        subject_code: item.topic.sub_subject.subject.code,
+        topic_title: item.topic.title,
+        sub_subject_name: item.topic.sub_subject.name,
+      }));
+
+      setSearchResults(results);
+      setShowResults(results.length > 0);
+    } catch (error) {
+      console.error("Error searching:", error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const handleSubjectClick = (subjectCode: string) => {
     if (user) {
@@ -91,81 +154,6 @@ const SubjectsSection = () => {
     }
   ];
 
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) {
-      toast({
-        title: "Enter search term",
-        description: "Please enter keywords to search for materials",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to search for materials",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
-    setIsSearching(true);
-    try {
-      const { data: contentData, error } = await supabase
-        .from("content")
-        .select(`
-          id,
-          title,
-          content_type,
-          topic:topics!inner (
-            title,
-            sub_subject:sub_subjects!inner (
-              name,
-              subject:subjects!inner (
-                name,
-                code
-              )
-            )
-          )
-        `)
-        .eq("is_published", true)
-        .or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%`);
-
-      if (error) throw error;
-
-      const results: SearchResult[] = (contentData || []).map((item: any) => ({
-        id: item.id,
-        title: item.title,
-        content_type: item.content_type,
-        subject_name: item.topic.sub_subject.subject.name,
-        subject_code: item.topic.sub_subject.subject.code,
-        topic_title: item.topic.title,
-        sub_subject_name: item.topic.sub_subject.name,
-      }));
-
-      setSearchResults(results);
-      setShowResults(true);
-
-      if (results.length === 0) {
-        toast({
-          title: "No results found",
-          description: `No materials found matching "${searchQuery}"`,
-        });
-      }
-    } catch (error) {
-      console.error("Error searching:", error);
-      toast({
-        title: "Search failed",
-        description: "Failed to search materials. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
   const handleResultClick = (result: SearchResult) => {
     navigate("/resources", { state: { selectedSubject: result.subject_code } });
     setShowResults(false);
@@ -208,35 +196,35 @@ const SubjectsSection = () => {
         <div className="max-w-2xl mx-auto mb-12">
           <Card className="border-2">
             <CardContent className="pt-6">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search for materials by keywords..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                    className="pl-10 pr-10"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={clearSearch}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-                <Button 
-                  onClick={handleSearch}
-                  disabled={isSearching || !searchQuery.trim()}
-                  className="gap-2"
-                >
-                  <Search className="h-4 w-4" />
-                  Search
-                </Button>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={user ? "Start typing to search materials..." : "Sign in to search materials..."}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  disabled={!user}
+                  className="pl-10 pr-10"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                {isSearching && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  </div>
+                )}
               </div>
+              {!user && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  Please <button onClick={() => navigate('/auth')} className="text-primary hover:underline">sign in</button> to search for materials
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>
