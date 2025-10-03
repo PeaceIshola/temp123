@@ -739,42 +739,6 @@ export type Database = {
         }
         Relationships: []
       }
-      subscriptions_backup: {
-        Row: {
-          created_at: string | null
-          expires_at: string | null
-          id: string | null
-          started_at: string | null
-          status: string | null
-          subject_id: string | null
-          subscription_type: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string | null
-          started_at?: string | null
-          status?: string | null
-          subject_id?: string | null
-          subscription_type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string | null
-          started_at?: string | null
-          status?: string | null
-          subject_id?: string | null
-          subscription_type?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       topics: {
         Row: {
           content: string | null
