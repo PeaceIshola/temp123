@@ -13,7 +13,7 @@ export type FeatureName =
   | 'student-dashboard';
 
 // Features available to free users
-const FREE_FEATURES: FeatureName[] = ['subjects'];
+const FREE_FEATURES: FeatureName[] = ['subjects', 'forum'];
 
 export const useFeatureAccess = () => {
   const { isTeacher, isAdmin, loading: roleLoading } = useUserRole();
