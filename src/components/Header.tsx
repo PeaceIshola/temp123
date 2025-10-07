@@ -4,11 +4,14 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useFeatureAccess } from "@/hooks/useFeatureAccess";
+import { Badge } from "@/components/ui/badge";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { isTeacher, isAdmin } = useUserRole();
+  const { hasAccess, hasPremiumAccess } = useFeatureAccess();
 
   const handleSignOut = async () => {
     await signOut();
@@ -61,18 +64,28 @@ const Header = () => {
           >
             Subjects
           </button>
-          <button 
-            onClick={() => handleNavigation('homework')} 
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Homework Help
-          </button>
-          <button 
-            onClick={() => navigate("/quizzes")} 
-            className="text-sm font-medium hover:text-primary transition-colors"
-          >
-            Quizzes
-          </button>
+          {(isTeacher || isAdmin || hasAccess('homework-help')) && (
+            <button 
+              onClick={() => handleNavigation('homework')} 
+              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+            >
+              Homework Help
+              {!isTeacher && !isAdmin && !hasPremiumAccess && (
+                <Badge variant="secondary" className="text-xs">Premium</Badge>
+              )}
+            </button>
+          )}
+          {(isTeacher || isAdmin || hasAccess('quizzes')) && (
+            <button 
+              onClick={() => navigate("/quizzes")} 
+              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+            >
+              Quizzes
+              {!isTeacher && !isAdmin && !hasPremiumAccess && (
+                <Badge variant="secondary" className="text-xs">Premium</Badge>
+              )}
+            </button>
+          )}
         </nav>
 
         <div className="flex items-center gap-2">
