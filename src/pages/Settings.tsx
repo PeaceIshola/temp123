@@ -329,48 +329,53 @@ const Settings = () => {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="class">Class (grade level)</Label>
-                      <Select
-                        value={profile.grade_level ? profile.grade_level.toString() : ''}
-                        onValueChange={(value) => setProfile(prev => prev ? {...prev, grade_level: parseInt(value)} : null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your class" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="7">JSS1 (grade 7)</SelectItem>
-                          <SelectItem value="8">JSS2 (grade 8)</SelectItem>
-                          <SelectItem value="9">JSS3 (grade 9)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="school_name">School Name</Label>
-                      <Input
-                        id="school_name"
-                        value={profile.school_name || ''}
-                        onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
-                        placeholder="Enter your school name"
-                      />
-                    </div>
-                  </div>
+                  {/* Only show grade level, school, and bio for students */}
+                  {profile.role !== 'teacher' && profile.role !== 'admin' && (
+                    <>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="class">Class (grade level)</Label>
+                          <Select
+                            value={profile.grade_level ? profile.grade_level.toString() : ''}
+                            onValueChange={(value) => setProfile(prev => prev ? {...prev, grade_level: parseInt(value)} : null)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select your class" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="7">JSS1 (grade 7)</SelectItem>
+                              <SelectItem value="8">JSS2 (grade 8)</SelectItem>
+                              <SelectItem value="9">JSS3 (grade 9)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="school_name">School Name</Label>
+                          <Input
+                            id="school_name"
+                            value={profile.school_name || ''}
+                            onChange={(e) => setProfile(prev => prev ? {...prev, school_name: e.target.value} : null)}
+                            placeholder="Enter your school name"
+                          />
+                        </div>
+                      </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="bio">Bio (Maximum 500 characters)</Label>
-                    <Textarea
-                      id="bio"
-                      value={profile.bio || ''}
-                      onChange={(e) => setProfile(prev => prev ? {...prev, bio: e.target.value} : null)}
-                      placeholder="Tell us about yourself..."
-                      rows={4}
-                      maxLength={500}
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      {profile.bio ? profile.bio.length : 0}/500 characters
-                    </p>
-                  </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Bio (Maximum 500 characters)</Label>
+                        <Textarea
+                          id="bio"
+                          value={profile.bio || ''}
+                          onChange={(e) => setProfile(prev => prev ? {...prev, bio: e.target.value} : null)}
+                          placeholder="Tell us about yourself..."
+                          rows={4}
+                          maxLength={500}
+                        />
+                        <p className="text-sm text-muted-foreground">
+                          {profile.bio ? profile.bio.length : 0}/500 characters
+                        </p>
+                      </div>
+                    </>
+                  )}
 
                   <div className="space-y-2">
                     <Label>Role</Label>
