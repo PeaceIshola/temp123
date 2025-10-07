@@ -67,23 +67,17 @@ const Header = () => {
           {user && hasAccess('homework-help') && (
             <button 
               onClick={() => handleNavigation('homework')} 
-              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+              className="text-sm font-medium hover:text-primary transition-colors"
             >
               Homework Help
-              {isPremiumFeature('homework-help') && (
-                <Badge variant="default" className="text-xs px-1 py-0">Premium</Badge>
-              )}
             </button>
           )}
           {user && hasAccess('quizzes') && (
             <button 
               onClick={() => navigate("/quizzes")} 
-              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
+              className="text-sm font-medium hover:text-primary transition-colors"
             >
               Quizzes
-              {isPremiumFeature('quizzes') && (
-                <Badge variant="default" className="text-xs px-1 py-0">Premium</Badge>
-              )}
             </button>
           )}
         </nav>
