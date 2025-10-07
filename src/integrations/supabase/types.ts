@@ -1222,6 +1222,10 @@ export type Database = {
         Args: { p_answers: Json; p_topic_id: string }
         Returns: Json
       }
+      sync_profile_roles_to_user_roles: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_profile_as_admin: {
         Args: {
           p_bio?: string
