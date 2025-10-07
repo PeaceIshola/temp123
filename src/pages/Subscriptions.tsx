@@ -115,7 +115,7 @@ const SubscriptionsPage = () => {
                 </div>
                 <CardTitle className="text-2xl">Free Access</CardTitle>
                 <CardDescription className="text-base">
-                  Access all subject modules at no cost
+                  Get started with essential learning tools
                 </CardDescription>
                 {currentPlan === 'free' && (
                   <Badge variant="secondary" className="mt-2 self-center">
@@ -133,22 +133,18 @@ const SubscriptionsPage = () => {
                 
                 <ul className="space-y-3">
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    All subject modules
+                    <Check className="h-4 w-4 text-green-500 mr-3" />
+                    Subject Explorer
                   </li>
-                  {subjects.map((subject) => (
-                    <li key={subject.id} className="flex items-center text-sm ml-7">
-                      <span className="w-2 h-2 rounded-full bg-primary mr-3"></span>
-                      {subject.name}
-                    </li>
-                  ))}
-                  <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Basic practice questions
+                  <li className="flex items-center text-sm text-muted-foreground ml-7">
+                    Browse all subjects and topics
                   </li>
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Study materials
+                    <Check className="h-4 w-4 text-green-500 mr-3" />
+                    Ask & Answer Forum
+                  </li>
+                  <li className="flex items-center text-sm text-muted-foreground ml-7">
+                    Get help from the community
                   </li>
                 </ul>
 
@@ -183,25 +179,37 @@ const SubscriptionsPage = () => {
                 </div>
                 
                 <ul className="space-y-3">
-                  <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Everything in Free plan
+                  <li className="flex items-center text-sm font-medium">
+                    <Check className="h-4 w-4 text-green-500 mr-3" />
+                    Everything in Free, plus:
                   </li>
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Advanced practice questions
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Interactive Quizzes
                   </li>
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Detailed solution explanations
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Smart Flashcards
                   </li>
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Progress tracking & analytics
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Study Resources Library
                   </li>
                   <li className="flex items-center text-sm">
-                    <Crown className="h-4 w-4 text-green-500 mr-3" />
-                    Priority support
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Solution Bank (Step-by-step)
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Homework Help (Teacher Support)
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Quick Help (Instant Answers)
+                  </li>
+                  <li className="flex items-center text-sm">
+                    <Check className="h-4 w-4 text-primary mr-3" />
+                    Student Dashboard & Progress Tracking
                   </li>
                 </ul>
 
@@ -217,12 +225,11 @@ const SubscriptionsPage = () => {
             <Card className="max-w-2xl mx-auto">
               <CardContent className="pt-6">
                 <p className="text-muted-foreground mb-4">
-                  <strong>Note:</strong> Free access provides full access to all subject modules and 
-                  basic practice questions for JSS curriculum.
+                  <strong>Note:</strong> Free access includes Subject Explorer and Ask & Answer Forum.
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Premium subscription unlocks advanced practice questions, detailed explanations, 
-                  progress tracking, and priority support across all subjects.
+                  Premium subscription unlocks all advanced features including quizzes, flashcards, 
+                  resources, solution bank, homework help, and progress tracking.
                 </p>
               </CardContent>
             </Card>
