@@ -27,6 +27,11 @@ export const useFeatureAccess = () => {
   // Check if user has premium subscription
   const hasPremiumSubscription = () => {
     const subscriptions = getAllActiveSubscriptions();
+    console.log('🔍 Checking premium subscription:', {
+      totalSubscriptions: subscriptions.length,
+      subscriptions: subscriptions,
+      hasPremium: subscriptions.some(sub => sub.subscription_type === 'premium')
+    });
     return subscriptions.some(sub => sub.subscription_type === 'premium');
   };
 
@@ -37,6 +42,12 @@ export const useFeatureAccess = () => {
 
   // Check if user has access to a specific feature
   const hasAccess = (feature: FeatureName): boolean => {
+    console.log('🔐 Checking access for feature:', feature, {
+      isTeacherOrAdmin,
+      isFreeFeature: isFreeFeature(feature),
+      hasPremium: hasPremiumSubscription()
+    });
+    
     // Teachers and admins always have access
     if (isTeacherOrAdmin) return true;
 

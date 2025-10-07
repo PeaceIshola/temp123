@@ -54,10 +54,14 @@ export function useSubscriptions() {
         .maybeSingle();
 
       if (error) throw error;
-      setUserSubscription(data ? {
+      
+      const subscriptionData = data ? {
         ...data,
         subscriptions: (data.subscriptions as unknown as SubjectSubscription[]) || []
-      } as UserSubscription : null);
+      } as UserSubscription : null;
+      
+      console.log('📊 Fetched subscription data:', subscriptionData);
+      setUserSubscription(subscriptionData);
     } catch (error) {
       console.error('Error fetching subscriptions:', error);
       toast({
