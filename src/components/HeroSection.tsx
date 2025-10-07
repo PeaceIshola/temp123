@@ -1,14 +1,17 @@
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BookOpen, Users, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight, BookOpen, Users, Trophy, GraduationCap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useStatistics } from "@/hooks/useStatistics";
+import { useUserRole } from "@/hooks/useUserRole";
 import heroImage from "@/assets/hero-education.jpg";
 
 const HeroSection = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { stats, loading } = useStatistics();
+  const { isTeacher, isAdmin } = useUserRole();
 
   const handleStartLearning = () => {
     if (user) {
@@ -35,6 +38,12 @@ const HeroSection = () => {
       <div className="container relative z-10">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8">
+            {(isTeacher || isAdmin) && (
+              <Badge variant="secondary" className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold">
+                <GraduationCap className="h-4 w-4" />
+                {isAdmin ? "Admin" : "Teacher"} Access
+              </Badge>
+            )}
             <div className="space-y-4">
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight">
                 Master Your 
