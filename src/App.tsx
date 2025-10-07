@@ -4,7 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { SubscriptionGuard } from "@/components/SubscriptionGuard";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -33,70 +32,22 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
-            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/subscriptions" element={<Subscriptions />} />
-            <Route path="/settings" element={<Settings />} />
-            
-            {/* Teacher/Admin routes */}
             <Route path="/teacher" element={<TeacherDashboard />} />
+            <Route path="/quizzes" element={<Quizzes />} />
+            <Route path="/quiz/:quizId" element={<TakeQuiz />} />
+            <Route path="/flashcards/:contentId" element={<Flashcards />} />
+            <Route path="/resources" element={<Resources />} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/solution-bank" element={<SolutionBank />} />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/forum" element={<Forum />} />
+            <Route path="/homework-help" element={<HomeworkHelp />} />
+            <Route path="/quick-help" element={<QuickHelp />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            
-            {/* Free subscription features */}
-            <Route path="/forum" element={
-              <SubscriptionGuard feature="forum">
-                <Forum />
-              </SubscriptionGuard>
-            } />
-            <Route path="/solution-bank" element={
-              <SubscriptionGuard feature="solution-bank">
-                <SolutionBank />
-              </SubscriptionGuard>
-            } />
-            <Route path="/explore/:subjectCode" element={
-              <SubscriptionGuard feature="subjects">
-                <SubjectExplorer />
-              </SubscriptionGuard>
-            } />
-            
-            {/* Premium only features */}
-            <Route path="/quizzes" element={
-              <SubscriptionGuard feature="quizzes" requiresPremium>
-                <Quizzes />
-              </SubscriptionGuard>
-            } />
-            <Route path="/quiz/:quizId" element={
-              <SubscriptionGuard feature="quizzes" requiresPremium>
-                <TakeQuiz />
-              </SubscriptionGuard>
-            } />
-            <Route path="/flashcards/:contentId" element={
-              <SubscriptionGuard feature="flashcards" requiresPremium>
-                <Flashcards />
-              </SubscriptionGuard>
-            } />
-            <Route path="/resources" element={
-              <SubscriptionGuard feature="resources" requiresPremium>
-                <Resources />
-              </SubscriptionGuard>
-            } />
-            <Route path="/homework-help" element={
-              <SubscriptionGuard feature="homework-help" requiresPremium>
-                <HomeworkHelp />
-              </SubscriptionGuard>
-            } />
-            <Route path="/quick-help" element={
-              <SubscriptionGuard feature="homework-help" requiresPremium>
-                <QuickHelp />
-              </SubscriptionGuard>
-            } />
-            <Route path="/student-dashboard" element={
-              <SubscriptionGuard feature="student-dashboard" requiresPremium>
-                <StudentDashboard />
-              </SubscriptionGuard>
-            } />
-            
+            <Route path="/explore/:subjectCode" element={<SubjectExplorer />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
