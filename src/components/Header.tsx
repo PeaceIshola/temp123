@@ -1,17 +1,14 @@
 import { Menu, GraduationCap, LogOut, User, BookOpen, Settings, Crown, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useFeatureAccess } from "@/hooks/useFeatureAccess";
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { isTeacher, isAdmin } = useUserRole();
-  const { hasAccess, isPremiumFeature } = useFeatureAccess();
 
   const handleSignOut = async () => {
     await signOut();
@@ -64,28 +61,18 @@ const Header = () => {
           >
             Subjects
           </button>
-          {user && hasAccess('homework-help') && (
-            <button 
-              onClick={() => handleNavigation('homework')} 
-              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
-            >
-              Homework Help
-              {isPremiumFeature('homework-help') && (
-                <Badge variant="default" className="text-xs px-1 py-0">Premium</Badge>
-              )}
-            </button>
-          )}
-          {user && hasAccess('quizzes') && (
-            <button 
-              onClick={() => navigate("/quizzes")} 
-              className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1"
-            >
-              Quizzes
-              {isPremiumFeature('quizzes') && (
-                <Badge variant="default" className="text-xs px-1 py-0">Premium</Badge>
-              )}
-            </button>
-          )}
+          <button 
+            onClick={() => handleNavigation('homework')} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Homework Help
+          </button>
+          <button 
+            onClick={() => navigate("/quizzes")} 
+            className="text-sm font-medium hover:text-primary transition-colors"
+          >
+            Quizzes
+          </button>
         </nav>
 
         <div className="flex items-center gap-2">
