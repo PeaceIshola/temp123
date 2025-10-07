@@ -36,19 +36,64 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/teacher" element={<TeacherDashboard />} />
-            <Route path="/quizzes" element={<SubscriptionGuard feature="quizzes"><Quizzes /></SubscriptionGuard>} />
-            <Route path="/quiz/:quizId" element={<SubscriptionGuard feature="quizzes"><TakeQuiz /></SubscriptionGuard>} />
-            <Route path="/flashcards/:contentId" element={<SubscriptionGuard feature="flashcards"><Flashcards /></SubscriptionGuard>} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/subscriptions" element={<Subscriptions />} />
-            <Route path="/solution-bank" element={<SubscriptionGuard feature="solution-bank"><SolutionBank /></SubscriptionGuard>} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/forum" element={<SubscriptionGuard feature="forum"><Forum /></SubscriptionGuard>} />
-            <Route path="/homework-help" element={<SubscriptionGuard feature="homework-help"><HomeworkHelp /></SubscriptionGuard>} />
-            <Route path="/quick-help" element={<SubscriptionGuard feature="quick-help"><QuickHelp /></SubscriptionGuard>} />
-            <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/explore/:subjectCode" element={<SubscriptionGuard feature="subjects"><SubjectExplorer /></SubscriptionGuard>} />
+            <Route path="/subscriptions" element={<Subscriptions />} />
+            <Route path="/settings" element={<Settings />} />
+            
+            {/* Free subscription features */}
+            <Route path="/explore/:subjectCode" element={
+              <SubscriptionGuard feature="subjects">
+                <SubjectExplorer />
+              </SubscriptionGuard>
+            } />
+            <Route path="/forum" element={
+              <SubscriptionGuard feature="forum">
+                <Forum />
+              </SubscriptionGuard>
+            } />
+            <Route path="/solution-bank" element={
+              <SubscriptionGuard feature="solution-bank">
+                <SolutionBank />
+              </SubscriptionGuard>
+            } />
+            
+            {/* Premium subscription features */}
+            <Route path="/quizzes" element={
+              <SubscriptionGuard feature="quizzes">
+                <Quizzes />
+              </SubscriptionGuard>
+            } />
+            <Route path="/quiz/:quizId" element={
+              <SubscriptionGuard feature="quizzes">
+                <TakeQuiz />
+              </SubscriptionGuard>
+            } />
+            <Route path="/flashcards/:contentId" element={
+              <SubscriptionGuard feature="flashcards">
+                <Flashcards />
+              </SubscriptionGuard>
+            } />
+            <Route path="/resources" element={
+              <SubscriptionGuard feature="resources">
+                <Resources />
+              </SubscriptionGuard>
+            } />
+            <Route path="/homework-help" element={
+              <SubscriptionGuard feature="homework-help">
+                <HomeworkHelp />
+              </SubscriptionGuard>
+            } />
+            <Route path="/quick-help" element={
+              <SubscriptionGuard feature="quick-help">
+                <QuickHelp />
+              </SubscriptionGuard>
+            } />
+            <Route path="/student-dashboard" element={
+              <SubscriptionGuard feature="student-dashboard">
+                <StudentDashboard />
+              </SubscriptionGuard>
+            } />
+            
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,55 +1,67 @@
-import { useAuth } from "@/contexts/AuthContext";
-import { useUserRole } from "./useUserRole";
-import { useSubscriptions } from "./useSubscriptions";
+import { useSubscriptions } from './useSubscriptions';
+import { useUserRole } from './useUserRole';
 
-export type FeatureType = 
-  | 'subjects' 
-  | 'forum' 
-  | 'solution-bank' 
-  | 'homework-help' 
-  | 'quizzes' 
-  | 'flashcards' 
-  | 'quick-help';
+// Features available to free subscribers
+const FREE_FEATURES = ['subjects', 'forum', 'solution-bank'] as const;
 
-const FREE_FEATURES: FeatureType[] = ['subjects', 'forum', 'solution-bank'];
+// All features (premium gets everything)
+const ALL_FEATURES = [
+  'subjects',
+  'forum',
+  'solution-bank',
+  'quizzes',
+  'flashcards',
+  'resources',
+  'homework-help',
+  'quick-help',
+  'student-dashboard'
+] as const;
+
+type FeatureName = typeof ALL_FEATURES[number];
 
 export const useFeatureAccess = () => {
-  const { user } = useAuth();
-  const { isTeacher, isAdmin, loading: rolesLoading } = useUserRole();
-  const { userSubscription, loading: subscriptionLoading } = useSubscriptions();
+  const { userSubscription, loading } = useSubscriptions();
+  const { isTeacher, isAdmin } = useUserRole();
 
-  const hasAccess = (feature: FeatureType): boolean => {
-    // Teachers and admins have full access
+  const hasAccess = (feature: FeatureName): boolean => {
+    // Teachers and admins have full access to all features
     if (isTeacher || isAdmin) {
       return true;
     }
 
-    // Not authenticated
-    if (!user) {
-      return false;
+    if (loading) return false;
+    
+    // Check if user has any active subscription
+    const activeSubscriptions = userSubscription?.subscriptions?.filter(
+      (sub: any) => sub.status === 'active'
+    ) || [];
+
+    if (activeSubscriptions.length === 0) {
+      return false; // No active subscription
     }
 
-    // Free features are always accessible
-    if (FREE_FEATURES.includes(feature)) {
-      return true;
-    }
-
-    // Premium features require active subscription
-    const hasActiveSubscription = userSubscription?.subscriptions?.some(
-      (sub: any) => sub.status === 'active' && sub.subscription_type === 'premium'
+    // Check if user has premium subscription
+    const hasPremium = activeSubscriptions.some(
+      (sub: any) => sub.subscription_type === 'premium'
     );
 
-    return hasActiveSubscription || false;
+    if (hasPremium) {
+      return true; // Premium users get all features
+    }
+
+    // Free users only get specific features
+    return FREE_FEATURES.includes(feature as any);
   };
 
-  const isPremiumFeature = (feature: FeatureType): boolean => {
-    return !FREE_FEATURES.includes(feature);
+  const isPremiumFeature = (feature: FeatureName): boolean => {
+    return !FREE_FEATURES.includes(feature as any);
   };
 
   return {
     hasAccess,
     isPremiumFeature,
-    loading: rolesLoading || subscriptionLoading,
-    isTeacher: isTeacher || isAdmin,
+    loading,
+    FREE_FEATURES,
+    ALL_FEATURES
   };
 };
