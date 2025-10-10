@@ -24,30 +24,68 @@ serve(async (req) => {
       throw new Error('Gemini API key not configured');
     }
 
-    // Create a prompt for generating flashcards
-    const prompt = `Generate 5-7 educational flashcards for the following learning material titled "${contentTitle}".
+    // Get the auth token from the request
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header required');
+    }
 
-${contentText ? `Content: ${contentText.substring(0, 2000)}` : `This is ${contentType} content about ${contentTitle}.`}
+    // Create Supabase client to fetch actual content
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
 
-Create flashcards that:
-- Cover key concepts and important information
-- Have clear, focused questions
-- Include detailed, educational answers
-- Range from easy to challenging (difficulty 1-3)
-- Help students understand and remember the material
+    // Fetch the actual document content from the database
+    let documentContent = contentText;
+    if (!documentContent) {
+      const { data: contentData, error: contentError } = await supabaseClient
+        .from('content')
+        .select('description, file_url')
+        .eq('id', contentId)
+        .single();
 
-Return the flashcards as a JSON array with this exact structure:
+      if (contentError) {
+        console.error('Error fetching content:', contentError);
+      } else if (contentData) {
+        documentContent = contentData.description || '';
+      }
+    }
+
+    if (!documentContent || documentContent.trim().length < 50) {
+      throw new Error('Insufficient content to generate flashcards. Please ensure the document has meaningful content.');
+    }
+
+    // Create a prompt for generating flashcards based on actual content
+    const prompt = `You are creating flashcards to help students test their knowledge and improve memory retention of this learning material.
+
+DOCUMENT TITLE: "${contentTitle}"
+DOCUMENT TYPE: ${contentType}
+
+DOCUMENT CONTENT:
+${documentContent.substring(0, 5000)}
+
+INSTRUCTIONS:
+- Read and analyze the document content carefully
+- Create EXACTLY 5 flashcards that test key concepts from this specific material
+- Each flashcard should test a specific fact, concept, or idea from the document
+- Questions should require recall of information from the document
+- Answers should be concise but complete (2-3 sentences)
+- Difficulty: 1 (basic recall), 2 (understanding), 3 (application/analysis)
+- Make flashcards that help students remember and retrieve this specific information
+
+RESPONSE FORMAT (JSON only, no other text):
 [
   {
-    "question": "Clear question here",
-    "answer": "Detailed answer here", 
+    "question": "What is [specific concept from document]?",
+    "answer": "Concise answer based on document content", 
     "difficulty": 1
   }
-]
+]`;
 
-Make sure the response is ONLY valid JSON, no additional text.`;
-
-    console.log('Calling Gemini to generate flashcards...');
+    console.log('Calling Gemini to generate flashcards from document content...');
+    console.log(`Document length: ${documentContent.length} characters`);
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
@@ -57,12 +95,13 @@ Make sure the response is ONLY valid JSON, no additional text.`;
       body: JSON.stringify({
         contents: [{
           parts: [{
-            text: `You are an expert educational content creator. Generate high-quality flashcards that help students learn effectively. Always respond with valid JSON only.\n\n${prompt}`
+            text: prompt
           }]
         }],
         generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2000,
+          temperature: 0.8,
+          maxOutputTokens: 3000,
+          responseMimeType: "application/json"
         }
       }),
     });
@@ -93,18 +132,8 @@ Make sure the response is ONLY valid JSON, no additional text.`;
       throw new Error('AI response is not an array of flashcards');
     }
 
-    // Get the auth token from the request
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Authorization header required');
-    }
-
-    // Create Supabase client with the user's token
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    // Limit to exactly 5 flashcards
+    flashcards = flashcards.slice(0, 5);
 
     // Get the user ID
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
