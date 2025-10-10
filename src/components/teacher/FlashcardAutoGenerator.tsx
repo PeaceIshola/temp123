@@ -167,7 +167,7 @@ export function FlashcardAutoGenerator() {
           <div className="flex items-center gap-2 mb-3">
             <Sparkles className="h-5 w-5 text-primary" />
             <h4 className="font-medium">AI-Powered Flashcard Generation</h4>
-            <Badge variant="secondary" className="text-xs">Powered by OpenAI</Badge>
+            <Badge variant="secondary" className="text-xs">Powered by Gemini AI</Badge>
           </div>
           
           <div className="space-y-3">

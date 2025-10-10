@@ -42,20 +42,26 @@ serve(async (req) => {
     if (!documentContent) {
       const { data: contentData, error: contentError } = await supabaseClient
         .from('content')
-        .select('description, file_url')
+        .select('content, title')
         .eq('id', contentId)
         .single();
 
       if (contentError) {
         console.error('Error fetching content:', contentError);
-      } else if (contentData) {
-        documentContent = contentData.description || '';
+        throw new Error(`Failed to fetch document: ${contentError.message}`);
+      }
+      
+      if (contentData && contentData.content) {
+        documentContent = contentData.content;
       }
     }
 
     if (!documentContent || documentContent.trim().length < 50) {
-      throw new Error('Insufficient content to generate flashcards. Please ensure the document has meaningful content.');
+      throw new Error('Insufficient content to generate flashcards. The document must have at least 50 characters of meaningful content.');
     }
+
+    console.log(`Processing document: "${contentTitle}" (${documentContent.length} characters)`);
+    console.log(`First 200 chars: ${documentContent.substring(0, 200)}...`);
 
     // Create a prompt for generating flashcards based on actual content
     const prompt = `You are creating flashcards to help students test their knowledge and improve memory retention of this learning material.
