@@ -19,9 +19,9 @@ serve(async (req) => {
       throw new Error('Content ID and title are required');
     }
 
-    const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
-    if (!openAIApiKey) {
-      throw new Error('OpenAI API key not configured');
+    const geminiApiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('Gemini API key not configured');
     }
 
     // Create a prompt for generating flashcards
@@ -47,38 +47,36 @@ Return the flashcards as a JSON array with this exact structure:
 
 Make sure the response is ONLY valid JSON, no additional text.`;
 
-    console.log('Calling OpenAI to generate flashcards...');
+    console.log('Calling Gemini to generate flashcards...');
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${geminiApiKey}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are an expert educational content creator. Generate high-quality flashcards that help students learn effectively. Always respond with valid JSON only.' 
-          },
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
+        contents: [{
+          parts: [{
+            text: `You are an expert educational content creator. Generate high-quality flashcards that help students learn effectively. Always respond with valid JSON only.\n\n${prompt}`
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        }
       }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('Gemini API error:', error);
+      throw new Error(`Gemini API error: ${response.status}`);
     }
 
     const data = await response.json();
-    const generatedText = data.choices[0].message.content;
+    const generatedText = data.candidates[0].content.parts[0].text;
     
-    console.log('OpenAI response:', generatedText);
+    console.log('Gemini response:', generatedText);
 
     // Parse the JSON response
     let flashcards;
@@ -87,7 +85,7 @@ Make sure the response is ONLY valid JSON, no additional text.`;
       const cleanedText = generatedText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       flashcards = JSON.parse(cleanedText);
     } catch (parseError) {
-      console.error('Failed to parse OpenAI response:', generatedText);
+      console.error('Failed to parse Gemini response:', generatedText);
       throw new Error('Failed to parse AI response as JSON');
     }
 
