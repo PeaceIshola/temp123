@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, Download, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 interface PDFFile {
   name: string;
@@ -52,6 +53,8 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<PDFFile[]>([]);
   const [title_, setTitle_] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const filesPerPage = 10;
 
   // Fetch existing files on component mount
   useEffect(() => {
@@ -63,8 +66,9 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
       const { data, error } = await supabase.storage
         .from(bucketName)
         .list('', {
-          limit: 100,
-          offset: 0
+          limit: 1000, // Increased limit
+          offset: 0,
+          sortBy: { column: 'created_at', order: 'desc' } // Sort newest first at source
         });
 
       if (error) throw error;
@@ -89,10 +93,8 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
         };
       }));
       
-      // Sort by created_at descending (newest first)
-      filesWithCategories.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
       setFiles(filesWithCategories);
+      setCurrentPage(1); // Reset to first page when refreshing
     } catch (error) {
       console.error('Error fetching files:', error);
     }
@@ -340,6 +342,16 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
     return fileName.replace(/^\d+-/, '').replace(/\.pdf$/, '');
   };
 
+  // Pagination calculations
+  const totalPages = Math.ceil(files.length / filesPerPage);
+  const startIndex = (currentPage - 1) * filesPerPage;
+  const endIndex = startIndex + filesPerPage;
+  const currentFiles = files.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -390,12 +402,12 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
       {files.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Uploaded Files</CardTitle>
+            <CardTitle>Uploaded Files ({files.length} total)</CardTitle>
           </CardHeader>
           <CardContent>
             <ScrollArea className="h-[500px] pr-4">
               <div className="space-y-3">
-                {files.map((file) => (
+                {currentFiles.map((file) => (
                 <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -463,6 +475,43 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
               ))}
               </div>
             </ScrollArea>
+            
+            {totalPages > 1 && (
+              <div className="mt-4 border-t pt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => currentPage > 1 && goToPage(currentPage - 1)}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => goToPage(page)}
+                          isActive={currentPage === page}
+                          className="cursor-pointer"
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => currentPage < totalPages && goToPage(currentPage + 1)}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+                <p className="text-sm text-muted-foreground text-center mt-2">
+                  Showing {startIndex + 1}-{Math.min(endIndex, files.length)} of {files.length} files
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
