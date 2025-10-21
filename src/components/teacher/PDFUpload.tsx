@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Upload, FileText, Download, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface PDFFile {
   name: string;
@@ -389,8 +390,9 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
             <CardTitle>Uploaded Files</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {files.map((file) => (
+            <ScrollArea className="h-[500px] pr-4">
+              <div className="space-y-3">
+                {files.map((file) => (
                 <div key={file.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-3 flex-1">
                     <FileText className="h-5 w-5 text-muted-foreground" />
@@ -456,7 +458,8 @@ const PDFUpload = ({ bucketName, title, description, icon, metadata, isMetadataR
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
       )}
