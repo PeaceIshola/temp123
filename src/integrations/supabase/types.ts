@@ -384,7 +384,7 @@ export type Database = {
           accessed_user_id: string
           accessor_user_id: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
         }
         Insert: {
@@ -393,7 +393,7 @@ export type Database = {
           accessed_user_id: string
           accessor_user_id: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
         }
         Update: {
@@ -402,7 +402,7 @@ export type Database = {
           accessed_user_id?: string
           accessor_user_id?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
         }
         Relationships: []
@@ -871,14 +871,8 @@ export type Database = {
         }
         Returns: Json
       }
-      check_content_access: {
-        Args: { p_content_id: string }
-        Returns: boolean
-      }
-      check_profile_access_rate: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      check_content_access: { Args: { p_content_id: string }; Returns: boolean }
+      check_profile_access_rate: { Args: never; Returns: boolean }
       check_subscription_status: {
         Args: { p_subject_id: string }
         Returns: string
@@ -892,7 +886,7 @@ export type Database = {
         Returns: undefined
       }
       detect_email_harvesting: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           attacker_user_id: string
           attempt_count: number
@@ -906,7 +900,7 @@ export type Database = {
         Returns: boolean
       }
       detect_suspicious_profile_access: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           access_count: number
           last_access: string
@@ -922,31 +916,19 @@ export type Database = {
         Returns: undefined
       }
       generate_missing_flashcards: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           content_id: string
           flashcards_created: number
           title: string
         }[]
       }
-      get_admin_overview_counts: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_admin_ticket_stats: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
-      get_anonymized_email: {
-        Args: { email: string }
-        Returns: string
-      }
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_admin_overview_counts: { Args: never; Returns: Json }
+      get_admin_ticket_stats: { Args: never; Returns: Json }
+      get_anonymized_email: { Args: { email: string }; Returns: string }
+      get_current_user_role: { Args: never; Returns: string }
       get_educational_student_data: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           display_name: string
           grade_level: number
@@ -963,16 +945,10 @@ export type Database = {
           role: string
         }[]
       }
-      get_my_email: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_platform_statistics: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      get_my_email: { Args: never; Returns: string }
+      get_platform_statistics: { Args: never; Returns: Json }
       get_profiles_for_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           bio: string
           created_at: string
@@ -1004,7 +980,7 @@ export type Database = {
         }[]
       }
       get_public_forum_questions: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           anonymous_id: string
           created_at: string
@@ -1134,7 +1110,7 @@ export type Database = {
         }[]
       }
       get_student_list_for_teacher: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           grade_level: number
           role_verified: string
@@ -1143,7 +1119,7 @@ export type Database = {
         }[]
       }
       get_students_for_teacher: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           anonymized_email: string
           full_name: string
@@ -1153,7 +1129,7 @@ export type Database = {
         }[]
       }
       get_suspicious_activities: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           activity_count: number
           activity_type: string
@@ -1163,7 +1139,7 @@ export type Database = {
         }[]
       }
       get_teachers_for_admin: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           created_at: string
           email: string
@@ -1186,22 +1162,13 @@ export type Database = {
         }
         Returns: boolean
       }
-      hash_email: {
-        Args: { email_address: string }
-        Returns: string
-      }
+      hash_email: { Args: { email_address: string }; Returns: string }
       increment_question_count: {
         Args: { question_id: string }
         Returns: undefined
       }
-      is_teacher_or_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      log_public_access_attempt: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      is_teacher_or_admin: { Args: never; Returns: boolean }
+      log_public_access_attempt: { Args: never; Returns: undefined }
       log_student_data_access: {
         Args: {
           access_type: string
@@ -1222,10 +1189,7 @@ export type Database = {
         Args: { p_answers: Json; p_topic_id: string }
         Returns: Json
       }
-      sync_profile_roles_to_user_roles: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      sync_profile_roles_to_user_roles: { Args: never; Returns: undefined }
       update_profile_as_admin: {
         Args: {
           p_bio?: string
@@ -1245,7 +1209,7 @@ export type Database = {
         Returns: boolean
       }
       verify_rls_protection: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           has_public_deny_policy: boolean
           has_rls_enabled: boolean
