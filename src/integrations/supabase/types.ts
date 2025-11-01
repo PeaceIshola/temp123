@@ -103,6 +103,66 @@ export type Database = {
           },
         ]
       }
+      diagrams: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_published: boolean | null
+          sub_subject_id: string
+          subject_id: string
+          title: string
+          topic: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_published?: boolean | null
+          sub_subject_id: string
+          subject_id: string
+          title: string
+          topic: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_published?: boolean | null
+          sub_subject_id?: string
+          subject_id?: string
+          title?: string
+          topic?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagrams_sub_subject_id_fkey"
+            columns: ["sub_subject_id"]
+            isOneToOne: false
+            referencedRelation: "sub_subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagrams_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       flashcard_progress: {
         Row: {
           correct_count: number | null
