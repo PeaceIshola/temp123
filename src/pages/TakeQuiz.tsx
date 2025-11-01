@@ -175,10 +175,22 @@ const TakeQuiz = () => {
 
       if (error) throw error;
 
+      // Get the attempt_id from the just-created quiz attempt
+      const { data: attemptData, error: attemptError } = await supabase
+        .from('quiz_attempts')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('topic_id', contentData?.topic_id)
+        .order('completed_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (attemptError) throw attemptError;
+
       // Fetch questions with correct answers and explanations using secure RPC function
       const { data: questionsData, error: questionsError } = await supabase
         .rpc('get_quiz_results_with_answers', {
-          p_topic_id: contentData?.topic_id
+          p_attempt_id: attemptData.id
         });
 
       if (!questionsError && questionsData) {

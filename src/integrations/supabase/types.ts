@@ -1030,7 +1030,7 @@ export type Database = {
         }[]
       }
       get_quiz_results_with_answers: {
-        Args: { p_topic_id: string }
+        Args: { p_attempt_id: string }
         Returns: {
           correct_answer: string
           difficulty_level: number
