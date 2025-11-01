@@ -18,6 +18,8 @@ interface Question {
   options: any;
   points: number;
   difficulty_level: number;
+  correct_answer?: string;
+  explanation?: string;
 }
 
 interface QuizData {
@@ -42,6 +44,7 @@ const TakeQuiz = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+  const [questionsWithAnswers, setQuestionsWithAnswers] = useState<Question[]>([]);
 
   useEffect(() => {
     if (!user) {
@@ -172,6 +175,16 @@ const TakeQuiz = () => {
 
       if (error) throw error;
 
+      // Fetch questions with correct answers and explanations for results view
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('questions')
+        .select('id, question_text, question_type, options, correct_answer, explanation, points, difficulty_level')
+        .eq('topic_id', contentData?.topic_id);
+
+      if (!questionsError && questionsData) {
+        setQuestionsWithAnswers(questionsData);
+      }
+
       // Type assertion for the result
       const typedResult = result as { score: number; total_questions: number };
       setResults(typedResult);
@@ -257,12 +270,14 @@ const TakeQuiz = () => {
   }
 
   if (isCompleted && results) {
+    const percentage = Math.round((results.score / results.total_questions) * 100);
+    
     return (
       <div className="min-h-screen bg-background">
         <Header />
         <main className="py-20">
-          <div className="container max-w-2xl">
-            <Card>
+          <div className="container max-w-4xl">
+            <Card className="mb-6">
               <CardHeader className="text-center">
                 <Trophy className="h-16 w-16 text-primary mx-auto mb-4" />
                 <CardTitle className="text-2xl">Quiz Completed!</CardTitle>
@@ -272,13 +287,64 @@ const TakeQuiz = () => {
                   {results.score}/{results.total_questions}
                 </div>
                 <p className="text-lg">
-                  You scored {Math.round((results.score / results.total_questions) * 100)}%
+                  You scored {percentage}%
                 </p>
-                <Button onClick={() => navigate("/quizzes")}>
-                  Back to Quizzes
-                </Button>
               </CardContent>
             </Card>
+
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold mb-4">Review Your Answers</h2>
+              {questionsWithAnswers.map((question, index) => {
+                const userAnswer = answers[question.id];
+                const isCorrect = userAnswer === question.correct_answer;
+                
+                return (
+                  <Card key={question.id} className={isCorrect ? "border-green-500" : "border-red-500"}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-lg">
+                          Question {index + 1}
+                        </CardTitle>
+                        <Badge variant={isCorrect ? "default" : "destructive"}>
+                          {isCorrect ? "Correct" : "Incorrect"}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="font-medium">{question.question_text}</p>
+                      
+                      <div className="space-y-2">
+                        <div>
+                          <span className="text-sm font-semibold">Your Answer: </span>
+                          <span className={isCorrect ? "text-green-600" : "text-red-600"}>
+                            {userAnswer || "No answer provided"}
+                          </span>
+                        </div>
+                        {!isCorrect && (
+                          <div>
+                            <span className="text-sm font-semibold">Correct Answer: </span>
+                            <span className="text-green-600">{question.correct_answer}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {question.explanation && (
+                        <div className="mt-4 p-4 bg-muted rounded-lg">
+                          <p className="text-sm font-semibold mb-2">Explanation:</p>
+                          <p className="text-sm text-muted-foreground">{question.explanation}</p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 text-center">
+              <Button onClick={() => navigate("/quizzes")}>
+                Back to Quizzes
+              </Button>
+            </div>
           </div>
         </main>
         <Footer />

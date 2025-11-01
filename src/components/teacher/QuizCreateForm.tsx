@@ -551,7 +551,7 @@ const QuizCreateForm = () => {
             </div>
 
             <div className="space-y-2">
-              <Label>Explanation (Optional)</Label>
+              <Label>Explanation</Label>
               <Textarea
                 value={currentQuestion.explanation}
                 onChange={(e) => setCurrentQuestion({...currentQuestion, explanation: e.target.value})}
