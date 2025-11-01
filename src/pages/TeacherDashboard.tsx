@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ContentUploadForm from "@/components/teacher/ContentUploadForm";
 import QuizCreateForm from "@/components/teacher/QuizCreateForm";
 import QuizManagement from "@/components/teacher/QuizManagement";
-import SolutionsForm from "@/components/teacher/SolutionsForm";
+import DiagramUploadForm from "@/components/teacher/DiagramUploadForm";
 import { FlashcardAutoGenerator } from "@/components/teacher/FlashcardAutoGenerator";
 import HomeworkQuestionsManager from "@/components/teacher/HomeworkQuestionsManager";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -41,7 +41,7 @@ const TeacherDashboard = () => {
             <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
             <TabsTrigger value="quiz">Create Quiz</TabsTrigger>
             <TabsTrigger value="manage">Manage Quizzes</TabsTrigger>
-            <TabsTrigger value="solutions">Solutions</TabsTrigger>
+            <TabsTrigger value="diagram">Diagrams</TabsTrigger>
           </TabsList>
           
           <TabsContent value="content" className="space-y-4">
@@ -64,8 +64,8 @@ const TeacherDashboard = () => {
             <QuizManagement />
           </TabsContent>
           
-          <TabsContent value="solutions" className="space-y-4">
-            <SolutionsForm />
+          <TabsContent value="diagram" className="space-y-4">
+            <DiagramUploadForm />
           </TabsContent>
         </Tabs>
       </div>
