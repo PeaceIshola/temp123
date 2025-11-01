@@ -10,6 +10,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Brain, Plus, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { z } from "zod";
+
+const quizQuestionSchema = z.object({
+  question_text: z.string().trim().min(10, "Question must be at least 10 characters").max(500, "Question must not exceed 500 characters"),
+  question_type: z.enum(['multiple_choice', 'true_false', 'fill_blank', 'short_answer']),
+  options: z.array(z.string().trim().max(200, "Option must not exceed 200 characters")).min(2).max(6),
+  correct_answer: z.string().trim().min(1, "Correct answer is required").max(200, "Answer must not exceed 200 characters"),
+  explanation: z.string().trim().min(10, "Explanation must be at least 10 characters").max(1000, "Explanation must not exceed 1000 characters"),
+  points: z.number().int().min(1).max(100)
+});
+
+const quizTitleSchema = z.string().trim().min(3, "Title must be at least 3 characters").max(200, "Title must not exceed 200 characters");
 
 interface Subject {
   id: string;
@@ -150,40 +162,44 @@ const QuizCreateForm = () => {
   };
 
   const addQuestion = () => {
-    if (!currentQuestion.question_text || !currentQuestion.correct_answer) {
-      toast({
-        title: "Error",
-        description: "Please fill in question text and correct answer",
-        variant: "destructive",
+    try {
+      // Validate with Zod schema
+      quizQuestionSchema.parse(currentQuestion);
+      
+      // Validate that correct answer exists in options for multiple choice
+      if (currentQuestion.question_type === "multiple_choice" && 
+          !currentQuestion.options.includes(currentQuestion.correct_answer)) {
+        toast({
+          title: "Validation Error",
+          description: "Correct answer must be one of the options",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setQuestions([...questions, currentQuestion]);
+      setCurrentQuestion({
+        question_text: "",
+        question_type: "multiple_choice",
+        options: ["", "", "", ""],
+        correct_answer: "",
+        explanation: "",
+        points: 1
       });
-      return;
-    }
 
-    // Validate that correct answer exists in options for multiple choice
-    if (currentQuestion.question_type === "multiple_choice" && 
-        !currentQuestion.options.includes(currentQuestion.correct_answer)) {
       toast({
-        title: "Error",
-        description: "Correct answer must be one of the options",
-        variant: "destructive",
+        title: "Question Added",
+        description: "Question added to quiz successfully",
       });
-      return;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      }
     }
-
-    setQuestions([...questions, currentQuestion]);
-    setCurrentQuestion({
-      question_text: "",
-      question_type: "multiple_choice",
-      options: ["", "", "", ""],
-      correct_answer: "",
-      explanation: "",
-      points: 1
-    });
-
-    toast({
-      title: "Question Added",
-      description: "Question added to quiz successfully",
-    });
   };
 
   const removeQuestion = (index: number) => {
@@ -192,6 +208,20 @@ const QuizCreateForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate quiz title
+    try {
+      quizTitleSchema.parse(quizTitle);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
     
     if (!selectedTopic || !quizTitle || questions.length === 0 || !selectedSubSubject) {
       toast({

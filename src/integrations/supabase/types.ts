@@ -1029,6 +1029,21 @@ export type Database = {
           topic_id: string
         }[]
       }
+      get_quiz_results_with_answers: {
+        Args: { p_topic_id: string }
+        Returns: {
+          correct_answer: string
+          difficulty_level: number
+          explanation: string
+          is_correct: boolean
+          options: Json
+          points: number
+          question_id: string
+          question_text: string
+          question_type: string
+          user_answer: string
+        }[]
+      }
       get_safe_profile: {
         Args: { target_user_id: string }
         Returns: {

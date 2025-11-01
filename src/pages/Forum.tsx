@@ -27,6 +27,16 @@ import {
   ChevronRight,
   Send
 } from "lucide-react";
+import { z } from "zod";
+
+const forumQuestionSchema = z.object({
+  title: z.string().trim().min(5, "Title must be at least 5 characters").max(200, "Title must not exceed 200 characters"),
+  question_text: z.string().trim().min(10, "Question must be at least 10 characters").max(1000, "Question must not exceed 1000 characters"),
+  subject_code: z.enum(["BST", "PVS", "NV"], { required_error: "Please select a subject" }),
+  difficulty_level: z.enum(["Easy", "Medium", "Hard"])
+});
+
+const forumAnswerSchema = z.string().trim().min(10, "Answer must be at least 10 characters").max(2000, "Answer must not exceed 2000 characters");
 
 interface ForumQuestion {
   id: string;
@@ -122,10 +132,16 @@ const Forum = () => {
     if (!user) return;
 
     try {
+      // Validate with Zod schema
+      const validatedData = forumQuestionSchema.parse(formData);
+      
       const { error } = await supabase
         .from('forum_questions')
         .insert({
-          ...formData,
+          title: validatedData.title,
+          question_text: validatedData.question_text,
+          subject_code: validatedData.subject_code,
+          difficulty_level: validatedData.difficulty_level,
           user_id: user.id
         });
 
@@ -145,12 +161,20 @@ const Forum = () => {
       setShowForm(false);
       fetchQuestions();
     } catch (error) {
-      console.error('Error posting question:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post your question. Please try again.",
-        variant: "destructive"
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive"
+        });
+      } else {
+        console.error('Error posting question:', error);
+        toast({
+          title: "Error",
+          description: "Failed to post your question. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -159,12 +183,15 @@ const Forum = () => {
     if (!user || !replyText.trim()) return;
 
     try {
+      // Validate with Zod schema
+      const validatedAnswer = forumAnswerSchema.parse(replyText);
+      
       const { error } = await supabase
         .from('forum_answers')
         .insert({
           question_id: replyingTo?.questionId,
           user_id: user.id,
-          answer_text: replyText.trim()
+          answer_text: validatedAnswer
         });
 
       if (error) throw error;
@@ -178,12 +205,20 @@ const Forum = () => {
       setReplyingTo(null);
       fetchQuestions();
     } catch (error) {
-      console.error('Error posting reply:', error);
-      toast({
-        title: "Error",
-        description: "Failed to post your reply. Please try again.",
-        variant: "destructive"
-      });
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive"
+        });
+      } else {
+        console.error('Error posting reply:', error);
+        toast({
+          title: "Error",
+          description: "Failed to post your reply. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

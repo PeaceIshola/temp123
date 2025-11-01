@@ -175,14 +175,25 @@ const TakeQuiz = () => {
 
       if (error) throw error;
 
-      // Fetch questions with correct answers and explanations for results view
+      // Fetch questions with correct answers and explanations using secure RPC function
       const { data: questionsData, error: questionsError } = await supabase
-        .from('questions')
-        .select('id, question_text, question_type, options, correct_answer, explanation, points, difficulty_level')
-        .eq('topic_id', contentData?.topic_id);
+        .rpc('get_quiz_results_with_answers', {
+          p_topic_id: contentData?.topic_id
+        });
 
       if (!questionsError && questionsData) {
-        setQuestionsWithAnswers(questionsData);
+        // Transform the RPC results to match the expected format
+        const transformedData = questionsData.map((q: any) => ({
+          id: q.question_id,
+          question_text: q.question_text,
+          question_type: q.question_type,
+          options: Array.isArray(q.options) ? q.options : [],
+          correct_answer: q.correct_answer,
+          explanation: q.explanation,
+          points: q.points,
+          difficulty_level: q.difficulty_level
+        }));
+        setQuestionsWithAnswers(transformedData);
       }
 
       // Type assertion for the result
