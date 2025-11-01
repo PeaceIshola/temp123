@@ -211,7 +211,7 @@ const DiagramUploadForm = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select subject" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent>
                     {subjects.map((subject) => (
                       <SelectItem key={subject.id} value={subject.id}>
                         {subject.name} ({subject.code})
@@ -231,7 +231,7 @@ const DiagramUploadForm = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select area" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent>
                     {subSubjects.map((subSubject) => (
                       <SelectItem key={subSubject.id} value={subSubject.id}>
                         {subSubject.name}
@@ -251,7 +251,7 @@ const DiagramUploadForm = () => {
                   <SelectTrigger>
                     <SelectValue placeholder="Select topic" />
                   </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
+                  <SelectContent>
                     {topics.map((topic) => (
                       <SelectItem key={topic.id} value={topic.id}>
                         {topic.title}
