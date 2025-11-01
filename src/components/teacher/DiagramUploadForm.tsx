@@ -21,18 +21,23 @@ interface SubSubject {
   subject_id: string;
 }
 
+interface Topic {
+  id: string;
+  title: string;
+}
+
 const DiagramUploadForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subSubjects, setSubSubjects] = useState<SubSubject[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedSubSubject, setSelectedSubSubject] = useState("");
-  const [customTopic, setCustomTopic] = useState("");
+  const [selectedTopic, setSelectedTopic] = useState("");
   const [title, setTitle] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [existingTopics, setExistingTopics] = useState<string[]>([]);
 
   useEffect(() => {
     fetchSubjects();
@@ -42,14 +47,15 @@ const DiagramUploadForm = () => {
     if (selectedSubject) {
       fetchSubSubjects(selectedSubject);
       setSelectedSubSubject("");
-      setCustomTopic("");
-      setExistingTopics([]);
+      setSelectedTopic("");
+      setTopics([]);
     }
   }, [selectedSubject]);
 
   useEffect(() => {
     if (selectedSubSubject) {
-      fetchExistingTopics(selectedSubSubject);
+      fetchTopics(selectedSubSubject);
+      setSelectedTopic("");
     }
   }, [selectedSubSubject]);
 
@@ -73,16 +79,14 @@ const DiagramUploadForm = () => {
     setSubSubjects(data || []);
   };
 
-  const fetchExistingTopics = async (subSubjectId: string) => {
+  const fetchTopics = async (subSubjectId: string) => {
     const { data } = await supabase
-      .from('diagrams')
-      .select('topic')
-      .eq('sub_subject_id', subSubjectId);
+      .from('topics')
+      .select('id, title')
+      .eq('sub_subject_id', subSubjectId)
+      .order('title');
 
-    if (data) {
-      const topics = [...new Set(data.map(item => item.topic))].sort();
-      setExistingTopics(topics);
-    }
+    setTopics(data || []);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -106,15 +110,15 @@ const DiagramUploadForm = () => {
   const resetSelections = () => {
     setSelectedSubject("");
     setSelectedSubSubject("");
-    setCustomTopic("");
+    setSelectedTopic("");
     setTitle("");
     setUploadedFile(null);
-    setExistingTopics([]);
+    setTopics([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !selectedSubject || !selectedSubSubject || !customTopic.trim() || !uploadedFile) {
+    if (!user || !selectedSubject || !selectedSubSubject || !selectedTopic || !uploadedFile) {
       toast({
         title: "Error",
         description: "Please fill in all fields and upload a file",
@@ -142,13 +146,15 @@ const DiagramUploadForm = () => {
 
       console.log('Upload successful, creating diagram entry...');
 
+      const selectedTopicData = topics.find(t => t.id === selectedTopic);
+
       const { error: diagramError } = await supabase
         .from('diagrams')
         .insert({
           title: title || uploadedFile.name,
           subject_id: selectedSubject,
           sub_subject_id: selectedSubSubject,
-          topic: customTopic.trim(),
+          topic: selectedTopicData?.title || '',
           file_path: filePath,
           file_size: uploadedFile.size,
           file_type: uploadedFile.type,
@@ -170,8 +176,7 @@ const DiagramUploadForm = () => {
 
       setTitle("");
       setUploadedFile(null);
-      setCustomTopic("");
-      fetchExistingTopics(selectedSubSubject);
+      setSelectedTopic("");
     } catch (error: any) {
       console.error('Upload failed:', error);
       toast({
@@ -186,6 +191,7 @@ const DiagramUploadForm = () => {
 
   const selectedSubjectData = subjects.find(s => s.id === selectedSubject);
   const selectedSubSubjectData = subSubjects.find(s => s.id === selectedSubSubject);
+  const selectedTopicData = topics.find(t => t.id === selectedTopic);
 
   return (
     <div className="space-y-6">
@@ -237,29 +243,32 @@ const DiagramUploadForm = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="topic">Topic</Label>
-                <Input
-                  id="topic"
-                  type="text"
-                  placeholder="Type topic name..."
-                  value={customTopic}
-                  onChange={(e) => setCustomTopic(e.target.value)}
+                <Select 
+                  value={selectedTopic} 
+                  onValueChange={setSelectedTopic}
                   disabled={!selectedSubSubject}
-                />
-                {existingTopics.length > 0 && (
-                  <div className="text-xs text-muted-foreground">
-                    Existing: {existingTopics.join(', ')}
-                  </div>
-                )}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select topic" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border z-50">
+                    {topics.map((topic) => (
+                      <SelectItem key={topic.id} value={topic.id}>
+                        {topic.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            {(selectedSubject || selectedSubSubject || customTopic) && (
+            {(selectedSubject || selectedSubSubject || selectedTopic) && (
               <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
                 <div className="text-sm">
                   <strong>Selected:</strong> 
                   {selectedSubjectData && ` ${selectedSubjectData.name}`}
                   {selectedSubSubjectData && ` > ${selectedSubSubjectData.name}`}
-                  {customTopic && ` > ${customTopic}`}
+                  {selectedTopicData && ` > ${selectedTopicData.title}`}
                 </div>
                 <Button variant="outline" size="sm" onClick={resetSelections} type="button">
                   Clear
@@ -306,17 +315,17 @@ const DiagramUploadForm = () => {
               )}
             </div>
 
-            {(!selectedSubject || !selectedSubSubject || !customTopic.trim()) && (
+            {(!selectedSubject || !selectedSubSubject || !selectedTopic) && (
               <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                  <strong>⚠️ Required:</strong> Please select Subject, Area, and enter a Topic before uploading. 
+                  <strong>⚠️ Required:</strong> Please select Subject, Area, and Topic before uploading. 
                 </p>
               </div>
             )}
 
             <Button 
               type="submit" 
-              disabled={isSubmitting || !selectedSubject || !selectedSubSubject || !customTopic.trim() || !uploadedFile}
+              disabled={isSubmitting || !selectedSubject || !selectedSubSubject || !selectedTopic || !uploadedFile}
               className="w-full"
             >
               {isSubmitting ? (
